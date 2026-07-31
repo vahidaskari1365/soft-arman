@@ -21,6 +21,8 @@ import {
   Menu,
   X,
   CheckCircle2,
+  Boxes,
+  UserCheck,
 } from "lucide-react";
 
 type Role = "super_admin" | "service_manager" | "repair_technician" | "intake_technician" | "accountant";
@@ -33,6 +35,8 @@ const NAV: NavItem[] = [
   { href: "/devices/new", label: "پذیرش دستگاه", icon: <ClipboardList className="h-[18px] w-[18px]" />, roles: ["intake_technician", "super_admin", "service_manager"] },
   { href: "/devices", label: "لیست دستگاه‌ها", icon: <Wrench className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician", "accountant"] },
   { href: "/approvals", label: "تایید قطعه‌ها", icon: <PackageCheck className="h-[18px] w-[18px]" />, roles: ["service_manager", "super_admin"] },
+  { href: "/inventory", label: "انبار و قطعات", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician"] },
+  { href: "/customers", label: "مشتریان (CRM)", icon: <UserCheck className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "intake_technician", "accountant"] },
   { href: "/accounting", label: "حسابداری", icon: <Calculator className="h-[18px] w-[18px]" />, roles: ["accountant", "super_admin"] },
   { href: "/reports", label: "گزارش‌گیری", icon: <BarChart3 className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "accountant", "intake_technician", "repair_technician"] },
   { href: "/users", label: "مدیریت کاربران", icon: <Users className="h-[18px] w-[18px]" />, roles: ["super_admin"] },
@@ -54,8 +58,11 @@ export type NotifItem = { id: number; title: string; message: string; read: bool
 function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setTheme(isDark ? "dark" : "light");
+    const timer = setTimeout(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
   const toggle = () => {
     const next = theme === "dark" ? "light" : "dark";

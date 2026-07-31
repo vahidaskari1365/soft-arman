@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { partRequests, devices } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { partRequests, devices, inventoryItems } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { notify } from "@/lib/notify";
+import { logDeviceAction } from "@/lib/queries";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
@@ -27,6 +28,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .update(devices)
       .set({ status: "parts_approved", updatedAt: new Date() })
       .where(eq(devices.id, pr.deviceId));
+
+    if (pr.inventoryItemId) {
+      await db
+        .update(inventoryItems)
+        .set({
+          currentStock: sql`GREATEST(0, ${inventoryItems.currentStock} - 1)`,
+          updatedAt: new Date(),
+        })
+        .where(eq(inventoryItems.id, pr.inventoryItemId));
+    }
+    await logDeviceAction(
+      pr.deviceId,
+      user.id,
+      "تایید قطعه",
+      "awaiting_parts",
+      "parts_approved",
+      `درخواست قطعه «${pr.partName}» تایید شد.`
+    );
+
     if (pr.requestedById) {
       await notify(pr.requestedById, {
         type: "parts_approved",
@@ -44,6 +64,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .update(devices)
       .set({ status: "assigned", needsParts: false, updatedAt: new Date() })
       .where(eq(devices.id, pr.deviceId));
+
+    await logDeviceAction(
+      pr.deviceId,
+      user.id,
+      "رد قطعه",
+      "awaiting_parts",
+      "assigned",
+      `درخواست قطعه «${pr.partName}» توسط مدیر رد شد.`
+    );
+
     if (pr.requestedById) {
       await notify(pr.requestedById, {
         type: "parts_rejected",

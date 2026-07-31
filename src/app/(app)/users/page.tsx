@@ -22,7 +22,10 @@ export default function UsersPage() {
     setLoading(true);
     fetch("/api/users").then((r) => r.json()).then((d) => setItems(d.items || [])).finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(() => {
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   function openCreate() {
     setEdit(null);

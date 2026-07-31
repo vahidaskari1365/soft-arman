@@ -14,20 +14,27 @@ export function useFetch<T = any>(url: string | null, deps: any[] = []) {
   useEffect(() => {
     if (!url) return;
     let alive = true;
-    setLoading(true);
-    fetch(url)
-      .then(async (r) => {
-        if (!r.ok) throw new Error("خطا در دریافت اطلاعات");
-        return r.json();
-      })
-      .then((d) => {
-        if (alive) {
-          setData(d);
-          setError("");
-        }
-      })
-      .catch((e) => alive && setError(e.message || "خطا"))
-      .finally(() => alive && setLoading(false));
+    const timer = setTimeout(() => {
+      if (!alive) return;
+      setLoading(true);
+      fetch(url)
+        .then(async (r) => {
+          if (!r.ok) throw new Error("خطا در دریافت اطلاعات");
+          return r.json();
+        })
+        .then((d) => {
+          if (alive) {
+            setData(d);
+            setError("");
+          }
+        })
+        .catch((e) => alive && setError(e.message || "خطا"))
+        .finally(() => alive && setLoading(false));
+    }, 0);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, reloadKey, ...deps]);
 

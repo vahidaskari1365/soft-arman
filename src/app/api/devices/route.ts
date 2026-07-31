@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices, customers, users } from "@/db/schema";
+import { devices, customers, users, accountingRecords } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
-import { listDevices, getTechnicians } from "@/lib/queries";
+import { listDevices, getTechnicians, logDeviceAction } from "@/lib/queries";
 import { makeTicketNumber } from "@/lib/format";
 import { notify } from "@/lib/notify";
 
@@ -55,6 +55,12 @@ export async function POST(req: NextRequest) {
     problem,
     estimatedCost,
     repairTechnicianId,
+    serialNumber,
+    devicePassword,
+    warrantyStatus,
+    warrantyDays,
+    deadlineDate,
+    deposit,
   } = body as any;
 
   if (!customerName || !customerPhone || !model || !problem || !deviceType) {
@@ -105,11 +111,28 @@ export async function POST(req: NextRequest) {
       status: "assigned",
       intakeTechnicianId: user.id,
       repairTechnicianId: Number(repairTechnicianId),
+      serialNumber: serialNumber || null,
+      devicePassword: devicePassword || null,
+      warrantyStatus: warrantyStatus || "out_of_warranty",
+      warrantyDays: Number(warrantyDays) || 0,
+      deadlineDate: deadlineDate ? new Date(deadlineDate) : null,
+      deposit: String(deposit || 0),
     })
     .returning({ id: devices.id });
 
   const ticketNumber = makeTicketNumber(device.id);
   await db.update(devices).set({ ticketNumber }).where(eq(devices.id, device.id));
+
+  await logDeviceAction(device.id, user.id, "ثبت پذیرش", null, "assigned", `دستگاه پذیرش شد و به کارشناس تعمیر ارجاع گردید.`);
+
+  if (Number(deposit) > 0) {
+    await db.insert(accountingRecords).values({
+      deviceId: device.id,
+      deposit: String(deposit || 0),
+      status: "pending",
+      recordedById: user.id,
+    });
+  }
 
   const tech = await db.select().from(users).where(eq(users.id, Number(repairTechnicianId))).limit(1);
   if (tech[0]) {

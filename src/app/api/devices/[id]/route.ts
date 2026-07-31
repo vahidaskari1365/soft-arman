@@ -20,9 +20,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const allowed = ["brand", "model", "problem", "estimatedCost", "accessories", "deviceType"];
+  const allowed = [
+    "brand",
+    "model",
+    "problem",
+    "estimatedCost",
+    "accessories",
+    "deviceType",
+    "serialNumber",
+    "devicePassword",
+    "warrantyStatus",
+    "warrantyDays",
+    "deadlineDate",
+    "deposit",
+  ];
   const patch: Record<string, unknown> = { updatedAt: new Date() };
-  for (const k of allowed) if (body[k] !== undefined) patch[k] = body[k];
+  for (const k of allowed) {
+    if (body[k] !== undefined) {
+      if (k === "deadlineDate") {
+        patch[k] = body[k] ? new Date(String(body[k])) : null;
+      } else if (k === "warrantyDays") {
+        patch[k] = Number(body[k]) || 0;
+      } else {
+        patch[k] = body[k];
+      }
+    }
+  }
   await db.update(devices).set(patch).where(eq(devices.id, Number(id)));
   return NextResponse.json({ ok: true });
 }
