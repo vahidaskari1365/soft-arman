@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge } from "@/components/ui";
+import ShamsiDatePicker from "@/components/shamsi-date-picker";
 import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, toEn, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput, formatShortDate, persianToGregorian } from "@/lib/format";
+import { toFa, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput } from "@/lib/format";
 import { ClipboardList, Save, Printer, CheckCircle2, Search, UserCheck, Phone, ShieldCheck, Clock, DollarSign, Key, Hash } from "lucide-react";
 import Link from "next/link";
 
@@ -274,16 +275,11 @@ export default function NewDevicePage() {
             <Field label="مدت گارانتی تعمیر (روز)" hint="مدت ضمانت کار انجام‌گرفته (مثلاً ۳۰ روز)">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
             </Field>
-            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" hint="مثلاً ۱۴۰۳/۰۵/۱۵">
-              <Input
-                value={form.deadlineDate ? formatShortDate(form.deadlineDate) : ""}
-                onChange={(e) => {
-                  const v = toEn(e.target.value).replace(/[^0-9\/\-]/g, "");
-                  const g = persianToGregorian(v);
-                  set("deadlineDate", g ? g.toISOString().split("T")[0] : v);
-                }}
+            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" hint="تاریخ شمسی را بنویسید یا از تقویم انتخاب کنید">
+              <ShamsiDatePicker
+                value={form.deadlineDate}
+                onChange={(v) => set("deadlineDate", v)}
                 placeholder="۱۴۰۳/۰۵/۱۵"
-                className="font-mono"
               />
             </Field>
             <Field label="بیعانه / پیش‌پرداخت دریافتی (ریال)" hint="مبلغ پرداختی توسط مشتری هنگام ثبت پذیرش">
