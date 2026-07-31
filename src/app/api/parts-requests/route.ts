@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const user = await requireUser();
-  if (!["service_manager", "super_admin", "repair_technician"].includes(user.role)) {
+  if (!["service_manager", "super_admin", "repair_technician", "accountant"].includes(user.role)) {
     return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
   }
   const url = new URL(req.url);
