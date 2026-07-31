@@ -52,15 +52,15 @@ export default function ReportsPage() {
       "تلفن": d.customerPhone || "",
       "کارشناس پذیرش": d.intakeTechName || "",
       "کارشناس تعمیر": d.repairTechName || "",
-      "تاریخ پذیرش": d.intakeDate ? new Date(d.intakeDate).toLocaleDateString("fa-IR") : "",
-      "تاریخ تحویل": d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString("fa-IR") : "",
+      "تاریخ پذیرش": d.intakeDate ? formatDate(d.intakeDate) : "",
+      "تاریخ تحویل": d.deliveryDate ? formatDate(d.deliveryDate) : "",
       "هزینه تخمینی": Number(d.estimatedCost || 0),
       "هزینه قطعه": Number(d.partCost || 0),
       "مبلغ دریافتی": Number(d.receivedAmount || 0),
       "سود خالص": Number(d.profit || 0) || Number(d.receivedAmount || 0) - Number(d.partCost || 0),
       "وضعیت": STATUS_LABELS[d.status] || d.status,
     }));
-    exportToExcel(rows, `گزارش-خدمات-${new Date().toLocaleDateString("fa-IR")}`, "گزارش");
+    exportToExcel(rows, `گزارش-خدمات-${formatDate(new Date())}`, "گزارش");
   }
 
   return (

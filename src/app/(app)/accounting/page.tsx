@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardHeader, Spinner, StatCard, Badge, Button, EmptyState } from "@/components/ui";
 import { STATUS_LABELS } from "@/db/schema";
 import { exportToExcel } from "@/lib/client";
-import { formatMoney, formatDateTime, toFa, classNames, statusColor } from "@/lib/format";
+import { formatMoney, formatDateTime, toFa, classNames, statusColor, formatDate } from "@/lib/format";
 import { Calculator, Coins, TrendingUp, Clock, Download } from "lucide-react";
 
 export default function AccountingPage() {
@@ -33,14 +33,14 @@ export default function AccountingPage() {
       "دستگاه": [d.brand, d.model].filter(Boolean).join(" "),
       "مشتری": d.customerName || "",
       "کارشناس تعمیر": d.repairTechName || "",
-      "تاریخ پذیرش": d.intakeDate ? new Date(d.intakeDate).toLocaleDateString("fa-IR") : "",
-      "تاریخ تحویل": d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString("fa-IR") : "",
+      "تاریخ پذیرش": d.intakeDate ? formatDate(d.intakeDate) : "",
+      "تاریخ تحویل": d.deliveryDate ? formatDate(d.deliveryDate) : "",
       "هزینه قطعه": Number(d.partCost || 0),
       "مبلغ دریافتی": Number(d.receivedAmount || 0),
       "سود خالص": Number(d.profit || 0) || Number(d.receivedAmount || 0) - Number(d.partCost || 0),
       "وضعیت": STATUS_LABELS[d.status],
     }));
-    exportToExcel(rows, `حسابداری-${new Date().toLocaleDateString("fa-IR")}`, "حسابداری");
+    exportToExcel(rows, `حسابداری-${formatDate(new Date())}`, "حسابداری");
   }
 
   const fin = stats?.financials;

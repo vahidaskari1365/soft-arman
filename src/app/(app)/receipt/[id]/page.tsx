@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { Button, Spinner } from "@/components/ui";
-import { toFa, formatMoney, formatDateTime } from "@/lib/format";
+import { toFa, formatMoney, formatDateTime, formatDate } from "@/lib/format";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { Printer, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string; d: any
         <Row k="کارشناس تعمیر" v={d.repairTechName || "—"} />
         <Row k="هزینه تخمینی" v={formatMoney(d.estimatedCost)} />
         {Number(d.deposit) > 0 && <Row k="پیش‌پرداخت / بیعانه" v={formatMoney(d.deposit)} />}
-        {d.deadlineDate && <Row k="تاریخ تحویل تقریبی" v={new Date(d.deadlineDate).toLocaleDateString("fa-IR")} />}
+        {d.deadlineDate && <Row k="تاریخ تحویل تقریبی" v={formatDate(d.deadlineDate)} />}
       </div>
 
       {d.customerAddress && (

@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, Button, Input, Field, Badge, Spinner, EmptyState, Modal, StatCard } from "@/components/ui";
-import { formatMoney, toFa, statusColor } from "@/lib/format";
+import { formatMoney, toFa, statusColor, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/db/schema";
 import { api } from "@/lib/client";
 import {
@@ -175,7 +175,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     </td>
                     <td className="p-3 font-bold">{formatMoney(d.receivedAmount || d.finalCost || d.estimatedCost)}</td>
                     <td className="p-3 text-slate-500">{formatMoney(d.deposit)}</td>
-                    <td className="p-3 text-slate-500">{d.intakeDate ? new Date(d.intakeDate).toLocaleDateString("fa-IR") : "—"}</td>
+                    <td className="p-3 text-slate-500">{d.intakeDate ? formatDate(d.intakeDate) : "—"}</td>
                     <td className="p-3 text-left">
                       <Link href={`/devices/${d.id}`}>
                         <Button variant="outline" size="sm" className="text-xs">
