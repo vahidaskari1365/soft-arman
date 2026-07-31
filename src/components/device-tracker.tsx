@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Wrench, Truck, CreditCard, PackageSearch, XCircle } from "lucide-react";
 import { STATUS_LABELS } from "@/db/schema";
-import { toFa, formatDateTime, classNames } from "@/lib/format";
+import { toFa, formatDateTime, formatShortDate, classNames } from "@/lib/format";
 
 interface Stage {
   key: string;
@@ -81,7 +81,9 @@ export default function DeviceTracker({ deviceId }: { deviceId: number }) {
 
   const stageMeta = [
     { label: "شماره رسید", value: data?.ticketNumber ? toFa(data.ticketNumber) : "—" },
+    { label: "نام مشتری", value: data?.customerName || "—" },
     { label: "دستگاه", value: [data?.brand, data?.model].filter(Boolean).join(" • ") || data?.deviceType || "—" },
+    { label: "تاریخ پذیرش", value: data?.intakeDate ? formatShortDate(data.intakeDate) : "—" },
     { label: "وضعیت فعلی", value: STATUS_LABELS[status] || status },
   ];
 
@@ -104,7 +106,7 @@ export default function DeviceTracker({ deviceId }: { deviceId: number }) {
       </div>
 
       {/* Meta */}
-      <div className="mb-8 grid grid-cols-1 gap-3 rounded-xl bg-slate-50 p-4 text-xs dark:bg-slate-800/40 sm:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-3 rounded-xl bg-slate-50 p-4 text-xs dark:bg-slate-800/40 sm:grid-cols-3 md:grid-cols-5">
         {stageMeta.map((m) => (
           <div key={m.label}>
             <p className="text-slate-400">{m.label}</p>

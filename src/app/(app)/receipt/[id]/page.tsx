@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { Button, Spinner } from "@/components/ui";
-import { toFa, formatMoney, formatDateTime, formatDate } from "@/lib/format";
+import { toFa, formatMoney, formatDateTime, formatDate, formatShortDate } from "@/lib/format";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { Printer, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string; d: any
         <Row k="کارشناس تعمیر" v={d.repairTechName || "—"} />
         <Row k="هزینه تخمینی" v={formatMoney(d.estimatedCost)} />
         {Number(d.deposit) > 0 && <Row k="پیش‌پرداخت / بیعانه" v={formatMoney(d.deposit)} />}
-        {d.deadlineDate && <Row k="تاریخ تحویل تقریبی" v={formatDate(d.deadlineDate)} />}
+        {d.deadlineDate && <Row k="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" v={formatShortDate(d.deadlineDate)} />}
       </div>
 
       {d.customerAddress && (
@@ -103,6 +103,19 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
       setLoading(false);
     });
   }, [id]);
+
+  // Auto-print if ?autoPrint=true
+  useEffect(() => {
+    if (!loading && d) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("autoPrint") === "true") {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loading, d]);
 
   if (loading || !d) return <div className="grid place-items-center py-32"><Spinner /></div>;
 

@@ -106,9 +106,14 @@ export default function NewDevicePage() {
             شماره رسید: <span className="font-mono font-bold text-sky-700">{toFa(created.ticketNumber)}</span>
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Link href={`/receipt/${created.id}`}>
+            <Link href={`/receipt/${created.id}?autoPrint=true`}>
               <Button className="w-full">
-                <Printer className="h-4 w-4" /> چاپ رسید (۲ نسخه A5)
+                <Printer className="h-4 w-4" /> چاپ رسید (۲ نسخه A5 لنداسکیپ)
+              </Button>
+            </Link>
+            <Link href={`/receipt/${created.id}`}>
+              <Button variant="outline" className="w-full">
+                <Printer className="h-4 w-4" /> پیشنمایش رسید
               </Button>
             </Link>
             <Link href={`/invoice/${created.id}`}>

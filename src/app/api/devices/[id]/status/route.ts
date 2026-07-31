@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices, deviceLogs, users } from "@/db/schema";
+import { devices, deviceLogs, users, customers } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 
@@ -21,12 +21,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       model: devices.model,
       deviceType: devices.deviceType,
       status: devices.status,
+      customerName: customers.name,
+      customerPhone: customers.phone,
       intakeDate: devices.intakeDate,
       deliveryDate: devices.deliveryDate,
       closedDate: devices.closedDate,
       updatedAt: devices.updatedAt,
     })
     .from(devices)
+    .leftJoin(customers, eq(devices.customerId, customers.id))
     .where(eq(devices.id, deviceId))
     .limit(1);
 

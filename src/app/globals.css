@@ -104,7 +104,7 @@ textarea {
 @media print {
   @page {
     size: A5 landscape;
-    margin: 8mm;
+    margin: 6mm;
   }
   body * {
     visibility: hidden;
@@ -115,8 +115,14 @@ textarea {
   }
   .print-area {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    top: 0;
     width: 100%;
+    page-break-after: always;
+  }
+  .print-area:last-child {
+    page-break-after: auto;
   }
   .no-print {
     display: none !important;
