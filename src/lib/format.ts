@@ -115,7 +115,7 @@ export function formatTime(value: Date | string | null | undefined): string {
 
 /**
  * Convert a Persian (Jalali) date string (e.g. "1403/05/15" or "1403-05-15") to a Gregorian Date object.
- * Uses the Borkowski algorithm for accurate conversion.
+ * Uses the proven jalaali-js algorithm for accurate conversion.
  */
 export function persianToGregorian(persianDateStr: string): Date | null {
   const parts = persianDateStr.split(/[/\-]/);
@@ -124,28 +124,70 @@ export function persianToGregorian(persianDateStr: string): Date | null {
   const pm = parseInt(parts[1]);
   const pd = parseInt(parts[2]);
   if (isNaN(py) || isNaN(pm) || isNaN(pd)) return null;
+  if (py < 1300 || py > 1500 || pm < 1 || pm > 12 || pd < 1 || pd > 31) return null;
+  try {
+    const jdn = _j2d(py, pm, pd);
+    const g = _d2g(jdn);
+    return new Date(g.gy, g.gm - 1, g.gd);
+  } catch {
+    return null;
+  }
+}
 
-  const epbase = py - (py >= 0 ? 474 : 473);
-  const epyear = 474 + (epbase % 2820);
+/* ---- jalaali-js internals ---- */
+const BREAKS = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
+function _div(a: number, b: number): number { return ~~(a / b); }
+function _mod(a: number, b: number): number { return a - ~~(a / b) * b; }
 
-  const jdn = pd
-    + (pm <= 7 ? (pm - 1) * 31 : (pm - 1) * 30 + 6)
-    + Math.floor((epyear * 682 - 110) / 2816)
-    + (epyear - 1) * 365
-    + Math.floor(epbase / 2820) * 1029983
-    + 1948320 - 1;
+function _jalCal(jy: number) {
+  const bl = BREAKS.length;
+  const gy = jy + 621;
+  let leapJ = -14;
+  let jp = BREAKS[0];
+  let jm: number, jump = 0, leap = 0, leapG: number, march: number, n: number;
+  let i: number;
 
-  const j = jdn - 1721425;
-  const g = Math.floor((j - 141) / 146097);
-  const d = j - 141 - g * 146097;
-  const e = Math.floor((d + 2) / 3657);
-  const f = d - Math.floor((3657 * e) / 100) + 31;
-  const h = Math.floor(f * 80 / 2447);
-  const day = f - Math.floor(2447 * h / 80);
-  const month = h - Math.floor(h / 11);
-  const year = 400 * g + Math.floor((e + 2) / 29) + 621 + h - Math.floor(h / 11);
+  for (i = 1; i < bl; i += 1) {
+    jm = BREAKS[i];
+    jump = jm - jp;
+    if (jy < jm) break;
+    leapJ = leapJ + _div(jump, 33) * 8 + _div(_mod(jump, 33), 4);
+    jp = jm;
+  }
+  n = jy - jp;
 
-  return new Date(year, month - 1, day);
+  leapJ = leapJ + _div(n, 33) * 8 + _div(_mod(n, 33) + 3, 4);
+  if (_mod(jump, 33) === 4 && jump - n === 4) leapJ += 1;
+
+  leapG = _div(gy, 4) - _div((_div(gy, 100) + 1) * 3, 4) - 150;
+  march = 20 + leapJ - leapG;
+
+  if (jump - n < 6) n = n - jump + _div(jump + 4, 33) * 33;
+  leap = _mod(_mod(n + 1, 33) - 1, 4);
+  if (leap === -1) leap = 4;
+
+  return { leap, gy, march };
+}
+
+function _j2d(jy: number, jm: number, jd: number): number {
+  const r = _jalCal(jy);
+  return _g2d(r.gy, 3, r.march) + (jm - 1) * 31 - _div(jm, 7) * (jm - 7) + jd - 1;
+}
+
+function _g2d(gy: number, gm: number, gd: number): number {
+  let d = _div((gy + _div(gm - 8, 6) + 100100) * 1461, 4) + _div(153 * _mod(gm + 9, 12) + 2, 5) + gd - 34840408;
+  d = d - _div(_div(gy + 100100 + _div(gm - 8, 6), 100) * 3, 4) + 752;
+  return d;
+}
+
+function _d2g(jdn: number): { gy: number; gm: number; gd: number } {
+  let j = 4 * jdn + 139361631;
+  j = j + _div(_div(4 * jdn + 183187720, 146097) * 3, 4) * 4 - 3908;
+  const i = _div(_mod(j, 1461), 4) * 5 + 308;
+  const gd = _mod(i, 153) / 5 + 1;
+  const gm = _mod(_div(i, 153), 12) + 1;
+  const gy = _div(j, 1461) - 100100 + _div(8 - gm, 6);
+  return { gy, gm, gd: Math.floor(gd) };
 }
 
 /**

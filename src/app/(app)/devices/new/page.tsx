@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge } from "@/components/ui";
+import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Modal } from "@/components/ui";
 import ShamsiDatePicker from "@/components/shamsi-date-picker";
 import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput } from "@/lib/format";
+import { toFa, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput, makeTicketNumber } from "@/lib/format";
+import { ReceiptView } from "@/components/receipt-view";
 import { ClipboardList, Save, Printer, CheckCircle2, Search, UserCheck, Phone, ShieldCheck, Clock, DollarSign, Key, Hash } from "lucide-react";
 import Link from "next/link";
 
@@ -16,6 +17,12 @@ export default function NewDevicePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<{ id: number; ticketNumber: string } | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [settings, setSettings] = useState<any>({});
+
+  useEffect(() => {
+    fetch("/api/settings").then((r) => r.json()).then((s) => setSettings(s)).catch(() => {});
+  }, []);
 
   // Auto-complete customer search
   const [custQuery, setCustQuery] = useState("");
@@ -306,17 +313,60 @@ export default function NewDevicePage() {
           </div>
         </Card>
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 pt-2 flex-wrap">
           <Link href="/devices">
             <Button type="button" variant="outline">
               انصراف
             </Button>
           </Link>
+          <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Printer className="h-4 w-4" /> پیشنمایش رسید
+          </Button>
           <Button type="submit" variant="primary" loading={loading}>
             <Save className="h-4 w-4" /> ثبت پذیرش و صدور رسید
           </Button>
         </div>
       </form>
+
+      {/* Receipt preview modal */}
+      <Modal open={previewOpen} onClose={() => setPreviewOpen(false)} title="پیشنمایش رسید" size="lg">
+        <div className="receipt-preview-content space-y-4">
+          <div className="flex justify-end gap-2 no-print">
+            <Button onClick={() => window.print()}><Printer className="h-4 w-4" /> چاپ رسید (۲ نسخه A5 لنداسکیپ)</Button>
+          </div>
+          {(() => {
+            const company = settings.companyName || "مرکز خدمات پس از فروش";
+            const repairTechName = techData?.repair?.find((t: any) => String(t.id) === String(form.repairTechnicianId))?.fullName || "—";
+            const previewData = {
+              ticketNumber: makeTicketNumber(0),
+              intakeDate: new Date().toISOString(),
+              customerName: form.customerName || "—",
+              customerPhone: form.customerPhone || "—",
+              customerPhone2: form.customerPhone2 || "",
+              customerNationalId: form.nationalId || "",
+              customerAddress: form.customerAddress || "",
+              deviceType: form.deviceType,
+              brand: form.brand,
+              model: form.model,
+              serialNumber: form.serialNumber || "",
+              warrantyStatus: form.warrantyStatus === "out_of_warranty" ? "" : form.warrantyStatus,
+              accessories: form.accessories || "",
+              status: "registered",
+              problem: form.problem || "—",
+              repairTechName: repairTechName,
+              estimatedCost: form.estimatedCost || "0",
+              deposit: form.deposit || "0",
+              deadlineDate: form.deadlineDate || "",
+            };
+            return (
+              <>
+                <ReceiptView copyLabel="نسخه مشتری" d={previewData} cfg={settings} company={company} />
+                <ReceiptView copyLabel="نسخه مرکز" d={previewData} cfg={settings} company={company} />
+              </>
+            );
+          })()}
+        </div>
+      </Modal>
     </div>
   );
 }
