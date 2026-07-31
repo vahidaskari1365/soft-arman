@@ -8,7 +8,7 @@ import { logDeviceAction } from "@/lib/queries";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
-  if (!["service_manager", "super_admin"].includes(user.role)) {
+  if (!["service_manager", "super_admin", "accountant"].includes(user.role)) {
     return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
   }
   const { id } = await params;
