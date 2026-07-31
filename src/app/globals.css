@@ -3,6 +3,9 @@
 /* Class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Import B Nazanin font */
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/b-nazanin@v0.8.1/B Nazanin.css');
+
 :root {
   --color-bg: #f1f5f9;
   --color-surface: #ffffff;
@@ -20,7 +23,8 @@
 }
 
 html {
-  font-family: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  /* B Nazanin as primary font for Persian text, with fallbacks */
+  font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   scroll-behavior: smooth;
 }
 

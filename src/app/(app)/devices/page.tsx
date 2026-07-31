@@ -5,6 +5,7 @@ import { Card, Spinner, Input, Select, Button, Field } from "@/components/ui";
 import DeviceTable, { type DeviceRow } from "@/components/device-table";
 import { STATUS_LABELS, DEVICE_TYPES } from "@/db/schema";
 import { exportToExcel } from "@/lib/client";
+import { formatDate } from "@/lib/format";
 import { Search, Download, Wrench, Filter } from "lucide-react";
 
 export default function DevicesListPage() {
@@ -49,7 +50,7 @@ export default function DevicesListPage() {
       "تلفن": d.customerPhone || "",
       "کارشناس تعمیر": d.repairTechName || "",
       "کارشناس پذیرش": d.intakeTechName || "",
-      "تاریخ پذیرش": d.intakeDate ? new Date(d.intakeDate).toLocaleDateString("fa-IR") : "",
+      "تاریخ پذیرش": d.intakeDate ? formatDate(d.intakeDate) : "",
       "وضعیت": STATUS_LABELS[d.status] || d.status,
     }));
     exportToExcel(rows, "ليست-دستگاه‌ها", "دستگاه‌ها");
