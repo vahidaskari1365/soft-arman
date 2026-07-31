@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     await logDeviceAction(deviceId, user.id, "درخواست قطعه", device.status, "awaiting_parts", `درخواست قطعه «${partName}» ثبت شد.`);
 
     const managers = await getServiceManagers();
-    await notifyRoles(["service_manager", "super_admin"], {
+    await notifyRoles(["service_manager", "super_admin", "accountant"], {
       type: "parts_request",
       title: "درخواست تایید خرید قطعه",
       message: `برای رسید ${device.ticketNumber} (${device.brand || ""} ${device.model}) قطعه «${partName}» با قیمت ${partPrice || 0} نیاز است.`,

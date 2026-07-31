@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinner } from "@/components/ui";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
@@ -24,12 +25,14 @@ import {
   ShieldCheck,
   Key,
   Calendar,
+  Trash2,
 } from "lucide-react";
 
 type Detail = any;
 
 export default function DeviceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { data, loading, refetch } = useFetch<Detail>(`/api/devices/${id}`);
   const [me, setMe] = useState<any>(null);
   const [now, setNow] = useState(0);
@@ -75,6 +78,25 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
       setError(err.message || "خطا در ثبت یادداشت");
     } finally {
       setPostingNote(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!data) return;
+    const label = [data.brand, data.model].filter(Boolean).join(" • ") || data.deviceType || "";
+    const ok = window.confirm(
+      `آیا از حذف کامل این دستگاه مطمئن هستید؟\n\nرسید: ${data.ticketNumber}\n${label}\n\n⚠️ این عملیات غیرقابل بازگشت است و تمام تاریخچه عملیات، یادداشت‌ها، درخواست‌های قطعه و اطلاعات حسابداری مرتبط نیز برای همیشه حذف خواهد شد.`
+    );
+    if (!ok) return;
+    setBusy("delete");
+    setError("");
+    try {
+      await api(`/api/devices/${data.id}`, "DELETE");
+      router.push("/devices");
+    } catch (err: any) {
+      setError(err.message || "خطا در حذف دستگاه");
+    } finally {
+      setBusy("");
     }
   }
 
@@ -124,6 +146,17 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
               <Printer className="h-4 w-4" /> چاپ رسید
             </Button>
           </Link>
+          {role === "super_admin" && (
+            <Button
+              variant="danger"
+              size="sm"
+              loading={busy === "delete"}
+              onClick={handleDelete}
+              title="حذف کامل دستگاه (فقط مدیر کل)"
+            >
+              <Trash2 className="h-4 w-4" /> حذف دستگاه
+            </Button>
+          )}
         </div>
       </div>
 

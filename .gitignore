@@ -13,3 +13,7 @@ coverage
 .idea
 .DS_Store
 Thumbs.db
+
+# Build/type-check artifacts
+next-env.d.ts
+*.tsbuildinfo

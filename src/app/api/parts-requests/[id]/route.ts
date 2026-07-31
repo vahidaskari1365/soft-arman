@@ -50,8 +50,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (pr.requestedById) {
       await notify(pr.requestedById, {
         type: "parts_approved",
-        title: "خرید قطعه تایید شد",
-        message: `درخواست قطعه برای رسید مربوطه تایید شد. می‌توانید عملیات تعمیر را ادامه دهید.`,
+        title: "تایید خرید قطعه توسط حسابداری",
+        message: `درخواست خرید قطعه «${pr.partName}» توسط ${user.fullName} تایید شد. اکنون فرم تعمیر برای شما باز است و می‌توانید عملیات تعمیر این دستگاه را ادامه دهید.`,
         deviceId: pr.deviceId,
       });
     }
