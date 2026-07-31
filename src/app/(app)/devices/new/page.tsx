@@ -276,13 +276,9 @@ export default function NewDevicePage() {
           <CardHeader title="گارانتی، زمان تحویل (SLA) و امور مالی پذیرش" subtitle="شرایط مالی، بیعانه و تعیین مهلت تحویل" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="وضعیت گارانتی در زمان پذیرش">
-              <Select value={form.warrantyStatus} onChange={(e) => set("warrantyStatus", e.target.value)}>
-                {Object.entries(WARRANTY_STATUS_LABELS).map(([k, label]) => (
-                  <option key={k} value={k}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
+              <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm text-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                {WARRANTY_STATUS_LABELS.out_of_warranty}
+              </div>
             </Field>
             <Field label="مدت گارانتی تعمیر (روز)" hint="مدت ضمانت کار انجام‌گرفته (مثلاً ۳۰ روز)">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
