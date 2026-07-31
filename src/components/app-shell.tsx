@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { classNames } from "@/lib/format";
+import { classNames, toFa } from "@/lib/format";
 import {
   LayoutDashboard,
   Inbox,
@@ -18,6 +18,7 @@ import {
   Moon,
   Sun,
   Bell,
+  BellRing,
   Menu,
   X,
   CheckCircle2,
@@ -35,7 +36,7 @@ const NAV: NavItem[] = [
   { href: "/devices/new", label: "پذیرش دستگاه", icon: <ClipboardList className="h-[18px] w-[18px]" />, roles: ["intake_technician", "super_admin", "service_manager"] },
   { href: "/devices", label: "لیست دستگاه‌ها", icon: <Wrench className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician", "accountant"] },
   { href: "/approvals", label: "تایید قطعه‌ها", icon: <PackageCheck className="h-[18px] w-[18px]" />, roles: ["service_manager", "super_admin", "accountant"] },
-  { href: "/track", label: "پیگیری دستگاه", icon: <Wrench className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician", "accountant"] },
+  { href: "/track", label: "پیگیری آنلاین", icon: <Wrench className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician", "accountant"] },
   { href: "/inventory", label: "انبار و قطعات", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "repair_technician", "intake_technician"] },
   { href: "/customers", label: "مشتریان (CRM)", icon: <UserCheck className="h-[18px] w-[18px]" />, roles: ["super_admin", "service_manager", "intake_technician", "accountant"] },
   { href: "/accounting", label: "حسابداری", icon: <Calculator className="h-[18px] w-[18px]" />, roles: ["accountant", "super_admin"] },
@@ -86,6 +87,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [notifs, setNotifs] = useState<NotifItem[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [counts, setCounts] = useState({ inbox: 0, approvals: 0 });
+  const [toasts, setToasts] = useState<NotifItem[]>([]);
+  const seenIdsRef = useRef<Set<number>>(new Set());
+  const toastsInitedRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -98,16 +103,53 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    fetch("/api/notifications")
-      .then((r) => r.json())
-      .then((d) => setNotifs(d.items ?? []));
-    const id = setInterval(() => {
+    const loadNotifs = () =>
       fetch("/api/notifications")
         .then((r) => r.json())
-        .then((d) => setNotifs(d.items ?? []));
+        .then((d) => setNotifs(d.items ?? []))
+        .catch(() => {});
+    const loadCounts = () =>
+      fetch("/api/me/counts")
+        .then((r) => r.json())
+        .then((d) => setCounts({ inbox: d.inbox ?? 0, approvals: d.approvals ?? 0 }))
+        .catch(() => {});
+    loadNotifs();
+    loadCounts();
+    const id = setInterval(() => {
+      loadNotifs();
+      loadCounts();
     }, 30000);
     return () => clearInterval(id);
   }, [user]);
+
+  // Surface genuinely new unread notifications as floating toasts.
+  useEffect(() => {
+    if (notifs.length === 0) return;
+    if (!toastsInitedRef.current) {
+      // On first load, mark everything as already seen so we don't flood with toasts.
+      toastsInitedRef.current = true;
+      notifs.forEach((n) => seenIdsRef.current.add(n.id));
+      return;
+    }
+    const fresh = notifs.filter((n) => !n.read && !seenIdsRef.current.has(n.id));
+    if (fresh.length > 0) {
+      fresh.forEach((n) => seenIdsRef.current.add(n.id));
+      setToasts((prev) => [...prev, ...fresh].slice(-4));
+    }
+  }, [notifs]);
+
+  // Auto-dismiss each toast after a few seconds.
+  useEffect(() => {
+    if (toasts.length === 0) return;
+    const timers = toasts.map((t) =>
+      setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== t.id)), 7000)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [toasts]);
+
+  function dismissToast(id: number) {
+    setToasts((prev) => prev.filter((x) => x.id !== id));
+  }
 
   const unread = notifs.filter((n) => !n.read).length;
 
@@ -156,6 +198,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
         {items.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          const badgeCount =
+            item.href === "/inbox" ? counts.inbox : item.href === "/approvals" ? counts.approvals : 0;
           return (
             <Link
               key={item.href}
@@ -169,7 +213,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
               )}
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {badgeCount > 0 && (
+                <span
+                  className={classNames(
+                    "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-bold text-white shadow-sm",
+                    active ? "bg-white/25" : "bg-rose-500"
+                  )}
+                >
+                  {toFa(badgeCount > 99 ? 99 : badgeCount)}
+                  {badgeCount > 99 ? "+" : ""}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -315,6 +370,47 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </span>
         </footer>
       </div>
+
+      {/* Floating toast alert (bottom-left corner) */}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-4 left-4 z-50 flex w-[22rem] max-w-[calc(100vw-2rem)] flex-col gap-2">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className="animate-fade-in-up overflow-hidden rounded-xl border border-sky-200 bg-white shadow-2xl dark:border-sky-900/60 dark:bg-slate-900"
+            >
+              <div className="flex items-start gap-3 p-3.5">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 text-white">
+                  <BellRing className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-slate-800 dark:text-white">{t.title}</p>
+                  <p className="mt-0.5 line-clamp-2 text-[11px] text-slate-500 dark:text-slate-400">{t.message}</p>
+                  {t.deviceId && (
+                    <Link
+                      href={`/devices/${t.deviceId}`}
+                      onClick={() => dismissToast(t.id)}
+                      className="mt-1 inline-block text-[11px] font-semibold text-sky-600 hover:underline dark:text-sky-400"
+                    >
+                      مشاهده دستگاه ←
+                    </Link>
+                  )}
+                </div>
+                <button
+                  onClick={() => dismissToast(t.id)}
+                  className="cursor-pointer rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                  title="بستن"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="h-0.5 w-full bg-sky-100 dark:bg-sky-900/40">
+                <div className="h-full bg-sky-500 animate-toast-progress" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
