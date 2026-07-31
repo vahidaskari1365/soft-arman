@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { Button, Spinner } from "@/components/ui";
-import { toFa, formatMoney, formatDateTime } from "@/lib/format";
+import { toFa, formatNumber, formatMoney, formatDateTime } from "@/lib/format";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
 import { Printer, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
@@ -102,7 +102,7 @@ function InvoiceCopyView({
             <ShieldCheck className="h-4 w-4 text-emerald-700" />
             <span>ضمانت خدمات تعمیر: {WARRANTY_STATUS_LABELS[d.warrantyStatus || "out_of_warranty"] || "—"}</span>
           </div>
-          {d.warrantyDays > 0 && <span className="font-mono font-extrabold">{toFa(d.warrantyDays)} روز گارانتی تعمیر</span>}
+          {d.warrantyDays > 0 && <span className="font-mono font-extrabold">{formatNumber(d.warrantyDays)} روز گارانتی تعمیر</span>}
         </div>
       )}
 

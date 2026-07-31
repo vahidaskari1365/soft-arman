@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinner } from "@/components/ui";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
+import { toFa, formatNumber, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
 import {
   ArrowRight,
   Printer,
@@ -197,7 +197,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
               <Info label="هزینه تخمینی" value={formatMoney(d.estimatedCost)} />
               {Number(d.deposit) > 0 && <Info label="پیش‌پرداخت / بیعانه" value={formatMoney(d.deposit)} />}
               {d.warrantyStatus && <Info label="وضعیت گارانتی پذیرش" value={WARRANTY_STATUS_LABELS[d.warrantyStatus] || "—"} />}
-              {d.warrantyDays > 0 && <Info label="مدت گارانتی تعمیر" value={`${toFa(d.warrantyDays)} روز`} />}
+              {d.warrantyDays > 0 && <Info label="مدت گارانتی تعمیر" value={`${formatNumber(d.warrantyDays)} روز`} />}
               {d.deadlineDate && <Info label="تاریخ تحویل تقریبی (SLA)" value={formatDate(d.deadlineDate)} />}
               <div className="sm:col-span-2">
                 <Info label="شرح مشکل" value={d.problem} />
@@ -228,7 +228,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
           {/* Parts */}
           {d.parts?.length > 0 && (
             <Card>
-              <CardHeader title="قطعات درخواستی" subtitle={`تعداد: ${toFa(d.parts.length)}`} />
+              <CardHeader title="قطعات درخواستی" subtitle={`تعداد: ${formatNumber(d.parts.length)}`} />
               <div className="divide-y divide-[var(--color-border)]">
                 {d.parts.map((p: any) => (
                   <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">

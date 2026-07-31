@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardHeader, Spinner, Badge } from "@/components/ui";
 import DeviceTable, { type DeviceRow } from "@/components/device-table";
-import { classNames, toFa } from "@/lib/format";
+import { classNames, toFa, formatNumber } from "@/lib/format";
 import { Inbox as InboxIcon } from "lucide-react";
 
 export default function InboxPage() {
@@ -45,7 +45,7 @@ export default function InboxPage() {
         </div>
         {role === "intake_technician" && readyCount > 0 && (
           <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 animate-pulse-soft">
-            {toFa(readyCount)} دستگاه آماده تحویل به مشتری
+            {formatNumber(readyCount)} دستگاه آماده تحویل به مشتری
           </Badge>
         )}
       </div>

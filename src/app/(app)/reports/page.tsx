@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, Spinner, Input, Select, Button, Field, StatCard, Badge } from "@/components/ui";
 import { STATUS_LABELS, DEVICE_TYPES } from "@/db/schema";
 import { exportToExcel, useFetch } from "@/lib/client";
-import { formatMoney, formatDate, statusColor, toFa, classNames } from "@/lib/format";
+import { formatMoney, formatDate, statusColor, toFa, formatNumber, classNames } from "@/lib/format";
 import { Download, BarChart3, TrendingUp, Coins, Wrench, Filter } from "lucide-react";
 
 export default function ReportsPage() {
@@ -78,7 +78,7 @@ export default function ReportsPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="تعداد دستگاه" value={toFa(summary.count)} accent="sky" icon={<BarChart3 className="h-5 w-5" />} />
+        <StatCard label="تعداد دستگاه" value={formatNumber(summary.count)} accent="sky" icon={<BarChart3 className="h-5 w-5" />} />
         <StatCard label="کل هزینه قطعات" value={formatMoney(summary.partCost)} accent="amber" icon={<Wrench className="h-5 w-5" />} />
         <StatCard label="کل دریافتی" value={formatMoney(summary.received)} accent="emerald" icon={<Coins className="h-5 w-5" />} />
         <StatCard label="سود خالص" value={formatMoney(summary.profit)} accent="violet" icon={<TrendingUp className="h-5 w-5" />} />
@@ -130,7 +130,7 @@ export default function ReportsPage() {
       </Card>
 
       <Card>
-        <CardHeader title={`نتیجه گزارش (${toFa(items.length)} رکورد)`} />
+        <CardHeader title={`نتیجه گزارش (${formatNumber(items.length)} رکورد)`} />
         {loading ? (
           <div className="grid place-items-center py-16"><Spinner /></div>
         ) : items.length === 0 ? (

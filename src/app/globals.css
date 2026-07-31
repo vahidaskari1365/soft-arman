@@ -1,5 +1,5 @@
-/* Import B Nazanin font first - must be before other rules per CSS spec */
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/b-nazanin@v0.8.1/dist/font-face.css');
+/* Import Vazirmatn font - modern Persian font */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 /* Class-based dark mode for Tailwind v4 */
@@ -22,25 +22,24 @@
 }
 
 html {
-  /* B Nazanin as primary font for Persian text, with fallbacks */
-  font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, sans-serif;
+  font-family: "Vazirmatn", Tahoma, sans-serif;
   scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, sans-serif;
+  font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
-/* Force all elements to use B Nazanin by default */
+/* Force all elements to use Vazirmatn by default */
 *, *::before, *::after {
-  font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, sans-serif;
+  font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
 /* Keep monospace for ticket numbers if needed, but still prioritize readability */
 .font-mono {
-  font-family: "B Nazanin", "BNazanin", ui-monospace, SFMono-Regular, monospace !important;
+  font-family: "Vazirmatn", ui-monospace, SFMono-Regular, monospace !important;
 }
 
 * {

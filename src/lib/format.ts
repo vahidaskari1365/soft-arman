@@ -11,11 +11,18 @@ export function toEn(input: string): string {
   return input.replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)));
 }
 
-/** Format an amount (Rial) with thousands separators, e.g. "1,000,000 ریال". */
+/** Format a number with thousands separators and Persian digits, e.g. "۱,۵۰۰,۰۰۰". */
+export function formatNumber(value: string | number | null | undefined): string {
+  const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, "")) || 0;
+  const grouped = new Intl.NumberFormat("en-US", { useGrouping: true }).format(Math.round(n));
+  return toFa(grouped);
+}
+
+/** Format an amount (Rial) with thousands separators, e.g. "۱,۰۰۰,۰۰۰ ریال". */
 export function formatMoney(value: string | number | null | undefined): string {
   const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, "")) || 0;
   const grouped = new Intl.NumberFormat("en-US", { useGrouping: true }).format(Math.round(n));
-  return grouped + " ریال";
+  return toFa(grouped) + " ریال";
 }
 
 /** Format an amount (Rial) with thousands separators, no currency label. */

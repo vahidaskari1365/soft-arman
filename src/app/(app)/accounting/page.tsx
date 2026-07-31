@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardHeader, Spinner, StatCard, Badge, Button, EmptyState } from "@/components/ui";
 import { STATUS_LABELS } from "@/db/schema";
 import { exportToExcel } from "@/lib/client";
-import { formatMoney, formatDateTime, toFa, classNames, statusColor, formatDate } from "@/lib/format";
+import { formatMoney, formatDateTime, toFa, formatNumber, classNames, statusColor, formatDate } from "@/lib/format";
 import { Calculator, Coins, TrendingUp, Clock, Download } from "lucide-react";
 
 export default function AccountingPage() {
@@ -64,7 +64,7 @@ export default function AccountingPage() {
           <StatCard label="کل درآمد دریافتی" value={formatMoney(fin.received)} accent="emerald" icon={<Coins className="h-5 w-5" />} />
           <StatCard label="کل هزینه قطعات" value={formatMoney(fin.partCost)} accent="amber" icon={<Calculator className="h-5 w-5" />} />
           <StatCard label="سود خالص کل" value={formatMoney(fin.profit)} accent="sky" icon={<TrendingUp className="h-5 w-5" />} />
-          <StatCard label="در انتظار تسویه" value={toFa(fin.pending)} accent="violet" icon={<Clock className="h-5 w-5" />} />
+          <StatCard label="در انتظار تسویه" value={formatNumber(fin.pending)} accent="violet" icon={<Clock className="h-5 w-5" />} />
         </div>
       )}
 

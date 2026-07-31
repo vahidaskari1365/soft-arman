@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Button, Input, Spinner, EmptyState, StatCard } from "@/components/ui";
-import { toFa } from "@/lib/format";
+import { toFa, formatNumber } from "@/lib/format";
 import { UserCheck, Search, Phone, MapPin, Wrench, ArrowLeft, Users } from "lucide-react";
 
 export default function CustomersPage() {
@@ -55,8 +55,8 @@ export default function CustomersPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCard label="تعداد کل مشتریان ثبت‌شده" value={toFa(items.length)} accent="emerald" icon={<Users className="h-5 w-5" />} />
-        <StatCard label="مجموع دستگاه‌های پذیرش‌شده" value={toFa(totalDevicesAll)} accent="sky" icon={<Wrench className="h-5 w-5" />} />
+        <StatCard label="تعداد کل مشتریان ثبت‌شده" value={formatNumber(items.length)} accent="emerald" icon={<Users className="h-5 w-5" />} />
+        <StatCard label="مجموع دستگاه‌های پذیرش‌شده" value={formatNumber(totalDevicesAll)} accent="sky" icon={<Wrench className="h-5 w-5" />} />
       </div>
 
       {/* Customers List */}
@@ -77,7 +77,7 @@ export default function CustomersPage() {
                     {c.nationalId && <p className="mt-0.5 font-mono text-xs text-slate-400">کد ملی: {toFa(c.nationalId)}</p>}
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    <Wrench className="h-3.5 w-3.5" /> {toFa(c.deviceCount || 0)} دستگاه
+                    <Wrench className="h-3.5 w-3.5" /> {formatNumber(c.deviceCount || 0)} دستگاه
                   </span>
                 </div>
 

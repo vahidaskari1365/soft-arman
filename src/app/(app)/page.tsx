@@ -4,7 +4,7 @@ import { useFetch } from "@/lib/client";
 import { Card, CardHeader, StatCard, Spinner, Badge } from "@/components/ui";
 import { StatusDonut, TechBar, TimelineLine } from "@/components/charts";
 import { STATUS_LABELS, ROLE_LABELS } from "@/db/schema";
-import { toFa, formatMoney, statusColor, classNames } from "@/lib/format";
+import { toFa, formatNumber, formatMoney, statusColor, classNames } from "@/lib/format";
 import {
   Wrench,
   Clock,
@@ -46,27 +46,27 @@ export default function DashboardPage() {
           <StatCard label="درآمد کل دریافتی" value={formatMoney(data.financials.received)} accent="emerald" icon={<Coins className="h-5 w-5" />} />
           <StatCard label="هزینه کل قطعات" value={formatMoney(data.financials.partCost)} accent="amber" icon={<Wrench className="h-5 w-5" />} />
           <StatCard label="سود خالص" value={formatMoney(data.financials.profit)} accent="sky" icon={<TrendingUp className="h-5 w-5" />} />
-          <StatCard label="در انتظار تسویه" value={toFa(data.financials.pending)} accent="violet" icon={<Clock className="h-5 w-5" />} />
+          <StatCard label="در انتظار تسویه" value={formatNumber(data.financials.pending)} accent="violet" icon={<Clock className="h-5 w-5" />} />
         </div>
       )}
 
       {/* Repair technician cards */}
       {isRepair && (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="دستگاه‌های در دست من" value={toFa(data.inHand)} accent="sky" icon={<InboxIcon className="h-5 w-5" />} />
-          <StatCard label="منتظر تایید قطعه" value={toFa(data.awaitingApproval)} accent="amber" icon={<PackageCheck className="h-5 w-5" />} />
-          <StatCard label="تعمیرهای تکمیل‌شده" value={toFa(data.completed)} accent="emerald" icon={<CheckCircle2 className="h-5 w-5" />} />
-          <StatCard label="مجموع کارکرد" value={toFa(data.total)} accent="violet" icon={<Wrench className="h-5 w-5" />} />
+          <StatCard label="دستگاه‌های در دست من" value={formatNumber(data.inHand)} accent="sky" icon={<InboxIcon className="h-5 w-5" />} />
+          <StatCard label="منتظر تایید قطعه" value={formatNumber(data.awaitingApproval)} accent="amber" icon={<PackageCheck className="h-5 w-5" />} />
+          <StatCard label="تعمیرهای تکمیل‌شده" value={formatNumber(data.completed)} accent="emerald" icon={<CheckCircle2 className="h-5 w-5" />} />
+          <StatCard label="مجموع کارکرد" value={formatNumber(data.total)} accent="violet" icon={<Wrench className="h-5 w-5" />} />
         </div>
       )}
 
       {/* Intake technician cards */}
       {isIntake && (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="پذیرش‌های من" value={toFa(data.total)} accent="sky" icon={<InboxIcon className="h-5 w-5" />} />
-          <StatCard label="در حال تعمیر" value={toFa(data.inRepair)} accent="violet" icon={<Wrench className="h-5 w-5" />} />
-          <StatCard label="آماده تحویل به مشتری" value={toFa(data.readyForDelivery)} accent="amber" icon={<CalendarClock className="h-5 w-5" />} />
-          <StatCard label="تحویل‌شده به مشتری" value={toFa(data.delivered)} accent="emerald" icon={<Truck className="h-5 w-5" />} />
+          <StatCard label="پذیرش‌های من" value={formatNumber(data.total)} accent="sky" icon={<InboxIcon className="h-5 w-5" />} />
+          <StatCard label="در حال تعمیر" value={formatNumber(data.inRepair)} accent="violet" icon={<Wrench className="h-5 w-5" />} />
+          <StatCard label="آماده تحویل به مشتری" value={formatNumber(data.readyForDelivery)} accent="amber" icon={<CalendarClock className="h-5 w-5" />} />
+          <StatCard label="تحویل‌شده به مشتری" value={formatNumber(data.delivered)} accent="emerald" icon={<Truck className="h-5 w-5" />} />
         </div>
       )}
 
@@ -124,9 +124,9 @@ export default function DashboardPage() {
                   {(data.techKpis || []).map((t: any) => (
                     <tr key={t.id} className="border-t border-[var(--color-border)]">
                       <td className="p-2 font-semibold text-slate-700 dark:text-slate-200">{t.name}</td>
-                      <td className="p-2"><Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">{toFa(t.inHand)}</Badge></td>
-                      <td className="p-2"><Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">{toFa(t.done)}</Badge></td>
-                      <td className="p-2 font-bold">{toFa(t.total)}</td>
+                      <td className="p-2"><Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">{formatNumber(t.inHand)}</Badge></td>
+                      <td className="p-2"><Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">{formatNumber(t.done)}</Badge></td>
+                      <td className="p-2 font-bold">{formatNumber(t.total)}</td>
                     </tr>
                   ))}
                   {(data.intakeKpis || []).length > 0 && (
@@ -136,8 +136,8 @@ export default function DashboardPage() {
                         <tr key={t.id} className="border-t border-[var(--color-border)]">
                           <td className="p-2 font-semibold text-slate-700 dark:text-slate-200">{t.name}</td>
                           <td className="p-2 text-slate-400">—</td>
-                          <td className="p-2"><Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">{toFa(t.delivered)}</Badge></td>
-                          <td className="p-2 font-bold">{toFa(t.total)}</td>
+                          <td className="p-2"><Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">{formatNumber(t.delivered)}</Badge></td>
+                          <td className="p-2 font-bold">{formatNumber(t.total)}</td>
                         </tr>
                       ))}
                     </>

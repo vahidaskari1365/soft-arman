@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { classNames, toFa } from "@/lib/format";
+import { classNames, toFa, formatNumber } from "@/lib/format";
 import {
   LayoutDashboard,
   Inbox,
@@ -221,7 +221,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                     active ? "bg-white/25" : "bg-rose-500"
                   )}
                 >
-                  {toFa(badgeCount > 99 ? 99 : badgeCount)}
+                  {formatNumber(badgeCount > 99 ? 99 : badgeCount)}
                   {badgeCount > 99 ? "+" : ""}
                 </span>
               )}

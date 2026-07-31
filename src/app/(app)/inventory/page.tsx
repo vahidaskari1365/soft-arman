@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardHeader, Button, Input, Field, Badge, Spinner, EmptyState, Modal, StatCard } from "@/components/ui";
-import { formatMoney, toFa } from "@/lib/format";
+import { formatMoney, toFa, formatNumber } from "@/lib/format";
 import { Boxes, Plus, Search, AlertTriangle, Trash2, Edit3, Truck, Layers, CheckCircle2 } from "lucide-react";
 import { api, useFetch } from "@/lib/client";
 
@@ -215,10 +215,10 @@ export default function InventoryPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="تعداد کل اقلام انبار" value={toFa(items.length)} accent="sky" icon={<Layers className="h-5 w-5" />} />
+        <StatCard label="تعداد کل اقلام انبار" value={formatNumber(items.length)} accent="sky" icon={<Layers className="h-5 w-5" />} />
         <StatCard
           label="هشدار کمبود موجودی"
-          value={toFa(lowStockCount)}
+          value={formatNumber(lowStockCount)}
           accent={lowStockCount > 0 ? "rose" : "emerald"}
           icon={<AlertTriangle className="h-5 w-5" />}
         />
@@ -236,7 +236,7 @@ export default function InventoryPage() {
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
             }`}
           >
-            <Boxes className="h-4 w-4" /> قطعات انبار ({toFa(items.length)})
+            <Boxes className="h-4 w-4" /> قطعات انبار ({formatNumber(items.length)})
           </button>
           <button
             onClick={() => setTab("suppliers")}
@@ -246,7 +246,7 @@ export default function InventoryPage() {
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
             }`}
           >
-            <Truck className="h-4 w-4" /> تامین‌کنندگان ({toFa(suppliers.length)})
+            <Truck className="h-4 w-4" /> تامین‌کنندگان ({formatNumber(suppliers.length)})
           </button>
         </div>
         <div className="relative w-full sm:w-72">
@@ -296,7 +296,7 @@ export default function InventoryPage() {
                         <td className="p-3">
                           <div className="flex items-center gap-1.5">
                             <span className={`font-mono text-sm font-bold ${isLow ? "text-rose-600 dark:text-rose-400" : "text-emerald-600"}`}>
-                              {toFa(i.currentStock)}
+                              {formatNumber(i.currentStock)}
                             </span>
                             {isLow && (
                               <Badge className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">کمبود موجودی</Badge>

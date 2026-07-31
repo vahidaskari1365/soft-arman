@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge } from "@/components/ui";
 import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, formatMoney } from "@/lib/format";
+import { toFa, formatNumber, formatMoney } from "@/lib/format";
 import { ClipboardList, Save, Printer, CheckCircle2, Search, UserCheck, Phone, ShieldCheck, Clock, DollarSign, Key, Hash } from "lucide-react";
 import Link from "next/link";
 
@@ -171,7 +171,7 @@ export default function NewDevicePage() {
                     {c.nationalId && <span className="mr-2 text-slate-400 font-mono">({toFa(c.nationalId)})</span>}
                   </div>
                   <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    انتخاب مشتری ({toFa(c.deviceCount || 0)} سابقه)
+                    انتخاب مشتری ({formatNumber(c.deviceCount || 0)} سابقه)
                   </Badge>
                 </button>
               ))}

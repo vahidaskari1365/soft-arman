@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, Button, Input, Field, Badge, Spinner, EmptyState, Modal, StatCard } from "@/components/ui";
-import { formatMoney, toFa, statusColor, formatDate } from "@/lib/format";
+import { formatMoney, toFa, formatNumber, statusColor, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/db/schema";
 import { api } from "@/lib/client";
 import {
@@ -134,7 +134,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
       {/* Financial & Statistics Summary */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="تعداد کل دستگاه‌های پذیرش‌شده" value={toFa(summary.totalDevices)} accent="sky" icon={<Wrench className="h-5 w-5" />} />
+        <StatCard label="تعداد کل دستگاه‌های پذیرش‌شده" value={formatNumber(summary.totalDevices)} accent="sky" icon={<Wrench className="h-5 w-5" />} />
         <StatCard label="مجموع مبالغ دریافتی از مشتری" value={formatMoney(summary.totalReceived)} accent="emerald" icon={<DollarSign className="h-5 w-5" />} />
         <StatCard label="مجموع بیعانه پرداختی" value={formatMoney(summary.totalDeposit)} accent="violet" icon={<Clock className="h-5 w-5" />} />
         <StatCard label="مجموع سود خالص از این مشتری" value={formatMoney(summary.totalProfit)} accent="amber" icon={<TrendingUp className="h-5 w-5" />} />
