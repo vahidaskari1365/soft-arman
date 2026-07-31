@@ -22,34 +22,16 @@
 }
 
 html {
-  /* B Nazanin as primary font for Persian text, with fallbacks - task requirement #5 */
+  /* B Nazanin as primary font for Persian text, with fallbacks */
   font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, sans-serif;
-  /* Increase base font size by 2-3 steps (from 16px to 20px) - task requirement #8
-     This makes all rem-based Tailwind sizes ~25% larger for better readability */
-  font-size: 20px;
-  line-height: 1.75;
   scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: "B Nazanin", "BNazanin", "Nazanin", Tahoma, sans-serif;
-  /* Base font size inherits 20px from html, make it slightly bolder for better readability */
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.85;
-  letter-spacing: -0.01em;
 }
-
-/* Scale up Tailwind's smallest text utilities by ~2 sizes for better Persian readability */
-.text-\[10px\] { font-size: 0.75rem !important; }   /* was 10px -> ~12px */
-.text-\[11px\] { font-size: 0.82rem !important; }   /* was 11px -> ~13px */
-.text-xs { font-size: 0.9rem !important; line-height: 1.6 !important; }
-.text-sm { font-size: 1rem !important; line-height: 1.7 !important; }
-.text-base { font-size: 1.1rem !important; }
 
 /* Force all elements to use B Nazanin by default */
 *, *::before, *::after {

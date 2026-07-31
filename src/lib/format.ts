@@ -11,38 +11,37 @@ export function toEn(input: string): string {
   return input.replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)));
 }
 
-/** Format an amount (Rial) with thousands separators in Persian digits. */
+/** Format an amount (Rial) with thousands separators, e.g. "1,000,000 ریال". */
 export function formatMoney(value: string | number | null | undefined): string {
-  const n = Number(String(value ?? "0").replace(/[^\d.-]/g, "")) || 0;
-  const grouped = new Intl.NumberFormat("en-US").format(Math.round(n));
-  return toFa(grouped) + " ریال";
+  const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, "")) || 0;
+  const grouped = new Intl.NumberFormat("en-US", { useGrouping: true }).format(Math.round(n));
+  return grouped + " ریال";
 }
 
-/** Format an amount (Rial) with Persian digits and thousand separators, no currency label. */
+/** Format an amount (Rial) with thousands separators, no currency label. */
 export function formatMoneyPlain(value: string | number | null | undefined): string {
-  const n = Number(String(value ?? "0").replace(/[^\d.-]/g, "")) || 0;
-  return toFa(new Intl.NumberFormat("en-US").format(Math.round(n)));
+  const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, "")) || 0;
+  return new Intl.NumberFormat("en-US", { useGrouping: true }).format(Math.round(n));
 }
 
 export function toNumber(value: unknown): number {
-  const n = Number(String(value ?? "0").replace(/[^\d.-]/g, ""));
+  const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, ""));
   return Number.isFinite(n) ? n : 0;
 }
 
 /**
  * Format a date value as a Jalali/Shamsi date string.
- * Uses Intl.DateTimeFormat with fa-IR locale for proper Persian calendar display.
+ * Uses Intl.DateTimeFormat with fa-IR-u-ca-persian for a real Persian (Jalali) calendar.
  */
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("fa-IR", {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       year: "numeric",
       month: "long",
       day: "numeric",
-      calendar: "persian",
     }).format(d);
   } catch {
     return "—";
@@ -51,20 +50,19 @@ export function formatDate(value: Date | string | null | undefined): string {
 
 /**
  * Format a date-time value as a Jalali/Shamsi date-time string.
- * Uses Intl.DateTimeFormat with fa-IR locale for proper Persian calendar display.
+ * Uses Intl.DateTimeFormat with fa-IR-u-ca-persian for a real Persian (Jalali) calendar.
  */
 export function formatDateTime(value: Date | string | null | undefined): string {
   if (!value) return "—";
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("fa-IR", {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      calendar: "persian",
     }).format(d);
   } catch {
     return "—";
@@ -73,18 +71,17 @@ export function formatDateTime(value: Date | string | null | undefined): string 
 
 /**
  * Format a short date in Jalali/Shamsi format (e.g., ۱۴۰۳/۰۵/۱۵).
- * Uses Intl.DateTimeFormat with fa-IR locale for proper Persian calendar display.
+ * Uses Intl.DateTimeFormat with fa-IR-u-ca-persian for a real Persian (Jalali) calendar.
  */
 export function formatShortDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("fa-IR", {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      calendar: "persian",
     }).format(d);
   } catch {
     return "—";
@@ -93,17 +90,16 @@ export function formatShortDate(value: Date | string | null | undefined): string
 
 /**
  * Format a time value in Jalali/Shamsi format (e.g., ۱۴:۳۰).
- * Uses Intl.DateTimeFormat with fa-IR locale for proper Persian digits.
+ * Uses Intl.DateTimeFormat with fa-IR-u-ca-persian for proper Persian digits.
  */
 export function formatTime(value: Date | string | null | undefined): string {
   if (!value) return "—";
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("fa-IR", {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       hour: "2-digit",
       minute: "2-digit",
-      calendar: "persian",
     }).format(d);
   } catch {
     return "—";
