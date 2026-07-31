@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge } from "@/components/ui";
 import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, formatNumber, formatMoney } from "@/lib/format";
+import { toFa, toEn, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput, formatShortDate, persianToGregorian } from "@/lib/format";
 import { ClipboardList, Save, Printer, CheckCircle2, Search, UserCheck, Phone, ShieldCheck, Clock, DollarSign, Key, Hash } from "lucide-react";
 import Link from "next/link";
 
@@ -274,14 +274,23 @@ export default function NewDevicePage() {
             <Field label="مدت گارانتی تعمیر (روز)" hint="مدت ضمانت کار انجام‌گرفته (مثلاً ۳۰ روز)">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
             </Field>
-            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)">
-              <Input type="date" value={form.deadlineDate} onChange={(e) => set("deadlineDate", e.target.value)} />
+            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" hint="مثلاً ۱۴۰۳/۰۵/۱۵">
+              <Input
+                value={form.deadlineDate ? formatShortDate(form.deadlineDate) : ""}
+                onChange={(e) => {
+                  const v = toEn(e.target.value).replace(/[^0-9\/\-]/g, "");
+                  const g = persianToGregorian(v);
+                  set("deadlineDate", g ? g.toISOString().split("T")[0] : v);
+                }}
+                placeholder="۱۴۰۳/۰۵/۱۵"
+                className="font-mono"
+              />
             </Field>
             <Field label="بیعانه / پیش‌پرداخت دریافتی (ریال)" hint="مبلغ پرداختی توسط مشتری هنگام ثبت پذیرش">
-              <Input value={form.deposit} onChange={(e) => set("deposit", toFa(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
+              <Input value={formatMoneyInput(form.deposit)} onChange={(e) => set("deposit", parseMoneyInput(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
             </Field>
             <Field label="هزینه تخمینی تعمیر (ریال)">
-              <Input value={form.estimatedCost} onChange={(e) => set("estimatedCost", toFa(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
+              <Input value={formatMoneyInput(form.estimatedCost)} onChange={(e) => set("estimatedCost", parseMoneyInput(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
             </Field>
             <Field label="ارجاع به کارشناس تعمیر" required>
               <Select value={form.repairTechnicianId} onChange={(e) => set("repairTechnicianId", e.target.value)} required>

@@ -113,6 +113,61 @@ export function formatTime(value: Date | string | null | undefined): string {
   }
 }
 
+/**
+ * Convert a Persian (Jalali) date string (e.g. "1403/05/15" or "1403-05-15") to a Gregorian Date object.
+ * Uses the Borkowski algorithm for accurate conversion.
+ */
+export function persianToGregorian(persianDateStr: string): Date | null {
+  const parts = persianDateStr.split(/[/\-]/);
+  if (parts.length !== 3) return null;
+  const py = parseInt(parts[0]);
+  const pm = parseInt(parts[1]);
+  const pd = parseInt(parts[2]);
+  if (isNaN(py) || isNaN(pm) || isNaN(pd)) return null;
+
+  const epbase = py - (py >= 0 ? 474 : 473);
+  const epyear = 474 + (epbase % 2820);
+
+  const jdn = pd
+    + (pm <= 7 ? (pm - 1) * 31 : (pm - 1) * 30 + 6)
+    + Math.floor((epyear * 682 - 110) / 2816)
+    + (epyear - 1) * 365
+    + Math.floor(epbase / 2820) * 1029983
+    + 1948320 - 1;
+
+  const j = jdn - 1721425;
+  const g = Math.floor((j - 141) / 146097);
+  const d = j - 141 - g * 146097;
+  const e = Math.floor((d + 2) / 3657);
+  const f = d - Math.floor((3657 * e) / 100) + 31;
+  const h = Math.floor(f * 80 / 2447);
+  const day = f - Math.floor(2447 * h / 80);
+  const month = h - Math.floor(h / 11);
+  const year = 400 * g + Math.floor((e + 2) / 29) + 621 + h - Math.floor(h / 11);
+
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Format a raw number string for display in a money input field.
+ * Adds thousands separators and converts to Persian digits.
+ * Returns the formatted string suitable for display.
+ */
+export function formatMoneyInput(raw: string): string {
+  const digits = toEn(raw).replace(/[^0-9]/g, "");
+  if (!digits) return "";
+  const grouped = new Intl.NumberFormat("en-US", { useGrouping: true }).format(parseInt(digits, 10));
+  return toFa(grouped);
+}
+
+/**
+ * Parse a money input value back to raw digits.
+ * Strips everything except digits, returns English digit string.
+ */
+export function parseMoneyInput(formatted: string): string {
+  return toEn(formatted).replace(/[^0-9]/g, "");
+}
+
 /** Generates a ticket number like HS-۱۴۰۳-۰۰۰123 */
 export function makeTicketNumber(seq: number): string {
   const year = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(new Date());
