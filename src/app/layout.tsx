@@ -23,10 +23,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* B Nazanin font - primary Persian font per requirement #5 */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css"
+          href="https://cdn.jsdelivr.net/gh/rastikerdar/b-nazanin@v0.8.1/dist/font-face.css"
         />
       </head>
       <body className="antialiased">{children}</body>
