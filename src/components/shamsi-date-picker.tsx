@@ -15,8 +15,8 @@ function getPersianMonthDays(py: number, pm: number): number {
   if (pm <= 6) return 31;
   if (pm <= 11) return 30;
   // Esfand: check leap year
-  const g1 = persianToGregorian(py, 1, 1);
-  const g2 = persianToGregorian(py + 1, 1, 1);
+  const g1 = persianToGregorian(`${py}/1/1`);
+  const g2 = persianToGregorian(`${py + 1}/1/1`);
   if (!g1 || !g2) return 29;
   const diff = (g2.getTime() - g1.getTime()) / (1000 * 60 * 60 * 24);
   return diff >= 366 ? 30 : 29;
@@ -24,7 +24,7 @@ function getPersianMonthDays(py: number, pm: number): number {
 
 /** Get the day-of-week (0=Saturday .. 6=Friday) for the first day of a Persian month. */
 function getPersianMonthStartDow(py: number, pm: number): number {
-  const g = persianToGregorian(py, pm, 1);
+  const g = persianToGregorian(`${py}/${pm}/1`);
   if (!g) return 0;
   // Shift so Saturday = 0
   return (g.getDay() + 1) % 7;
@@ -103,7 +103,7 @@ export default function ShamsiDatePicker({
   for (let i = 1; i <= monthDays; i++) days.push(i);
 
   function selectDay(d: number) {
-    const g = persianToGregorian(py, pm, d);
+    const g = persianToGregorian(`${py}/${pm}/${d}`);
     if (!g) return;
     const iso = g.toISOString().split("T")[0];
     setSelected({ y: py, m: pm, d });
@@ -117,7 +117,7 @@ export default function ShamsiDatePicker({
     setInputVal(raw);
     const parsed = parsePersianDateStr(raw);
     if (parsed) {
-      const g = persianToGregorian(parsed.y, parsed.m, parsed.d);
+      const g = persianToGregorian(`${parsed.y}/${parsed.m}/${parsed.d}`);
       if (g) {
         const iso = g.toISOString().split("T")[0];
         setSelected(parsed);
@@ -133,7 +133,7 @@ export default function ShamsiDatePicker({
         const m = parseInt(clean.slice(4, 6), 10);
         const d = parseInt(clean.slice(6, 8), 10);
         if (y >= 1300 && y <= 1500 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-          const g = persianToGregorian(y, m, d);
+          const g = persianToGregorian(`${y}/${m}/${d}`);
           if (g) {
             setSelected({ y, m, d });
             setPy(y);
