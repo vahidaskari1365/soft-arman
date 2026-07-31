@@ -14,6 +14,11 @@ export async function GET() {
     address: cfg.address || "",
     phone: cfg.phone || "",
     logo: cfg.logo || "",
+    receiptFooterTerms: cfg.receiptFooterTerms || "",
+    invoiceFooterTerms: cfg.invoiceFooterTerms || "",
+    smsTemplateIntake: cfg.smsTemplateIntake || "",
+    smsTemplateReady: cfg.smsTemplateReady || "",
+    smsTemplateDelivery: cfg.smsTemplateDelivery || "",
   });
 }
 
@@ -23,7 +28,18 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
   }
   const body = await req.json().catch(() => ({}));
-  const allowed = ["companyName", "tagline", "address", "phone", "logo"];
+  const allowed = [
+    "companyName",
+    "tagline",
+    "address",
+    "phone",
+    "logo",
+    "receiptFooterTerms",
+    "invoiceFooterTerms",
+    "smsTemplateIntake",
+    "smsTemplateReady",
+    "smsTemplateDelivery",
+  ];
   for (const key of allowed) {
     if (body[key] !== undefined) {
       const value = String(body[key]);

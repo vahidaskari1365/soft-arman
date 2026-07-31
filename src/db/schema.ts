@@ -73,6 +73,12 @@ export const devices = pgTable("devices", {
   needsParts: boolean("needs_parts").default(false).notNull(),
   repairNotes: text("repair_notes"),
   operationsDone: text("operations_done"),
+  serialNumber: text("serial_number"),
+  devicePassword: text("device_password"),
+  warrantyStatus: text("warranty_status").default("out_of_warranty"), // out_of_warranty | in_warranty | company_warranty | other
+  warrantyDays: integer("warranty_days").default(0),
+  deadlineDate: timestamp("deadline_date", { withTimezone: true }),
+  deposit: numeric("deposit", { precision: 14, scale: 0 }).default("0"),
   intakeDate: timestamp("intake_date", { withTimezone: true }).defaultNow().notNull(),
   deliveryDate: timestamp("delivery_date", { withTimezone: true }),
   closedDate: timestamp("closed_date", { withTimezone: true }),
@@ -88,6 +94,7 @@ export const partRequests = pgTable("part_requests", {
   partName: text("part_name").notNull(),
   partModel: text("part_model"),
   partPrice: numeric("part_price", { precision: 14, scale: 0 }).default("0"),
+  inventoryItemId: integer("inventory_item_id"),
   supplier: text("supplier"),
   notes: text("notes"),
   status: text("status").notNull().default("pending"), // pending | approved | rejected
@@ -104,8 +111,15 @@ export const accountingRecords = pgTable("accounting_records", {
     .references(() => devices.id)
     .unique(),
   partCost: numeric("part_cost", { precision: 14, scale: 0 }).default("0"),
+  laborCost: numeric("labor_cost", { precision: 14, scale: 0 }).default("0"),
+  discount: numeric("discount", { precision: 14, scale: 0 }).default("0"),
+  tax: numeric("tax", { precision: 14, scale: 0 }).default("0"),
+  deposit: numeric("deposit", { precision: 14, scale: 0 }).default("0"),
+  paymentMethod: text("payment_method").default("cash"),
+  finalPayable: numeric("final_payable", { precision: 14, scale: 0 }).default("0"),
   receivedAmount: numeric("received_amount", { precision: 14, scale: 0 }).default("0"),
   profit: numeric("profit", { precision: 14, scale: 0 }).default("0"),
+  notes: text("notes"),
   status: text("status").notNull().default("pending"), // pending | settled
   recordedById: integer("recorded_by_id").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -131,6 +145,56 @@ export const settings = pgTable("settings", {
   value: text("value"),
 });
 
+export const inventoryItems = pgTable("inventory_items", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  partModel: text("part_model"),
+  sku: text("sku"),
+  currentStock: integer("current_stock").default(0).notNull(),
+  minStockLevel: integer("min_stock_level").default(2).notNull(),
+  buyPrice: numeric("buy_price", { precision: 14, scale: 0 }).default("0"),
+  sellPrice: numeric("sell_price", { precision: 14, scale: 0 }).default("0"),
+  supplier: text("supplier"),
+  location: text("location"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const suppliers = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contactPerson: text("contact_person"),
+  phone: text("phone"),
+  address: text("address"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const deviceLogs = pgTable("device_logs", {
+  id: serial("id").primaryKey(),
+  deviceId: integer("device_id")
+    .notNull()
+    .references(() => devices.id),
+  userId: integer("user_id").references(() => users.id),
+  action: text("action").notNull(),
+  fromStatus: text("from_status"),
+  toStatus: text("to_status"),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const deviceNotes = pgTable("device_notes", {
+  id: serial("id").primaryKey(),
+  deviceId: integer("device_id")
+    .notNull()
+    .references(() => devices.id),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Device = typeof devices.$inferSelect;
@@ -139,6 +203,12 @@ export type Customer = typeof customers.$inferSelect;
 export type PartRequest = typeof partRequests.$inferSelect;
 export type AccountingRecord = typeof accountingRecords.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+export type NewInventoryItem = typeof inventoryItems.$inferInsert;
+export type Supplier = typeof suppliers.$inferSelect;
+export type NewSupplier = typeof suppliers.$inferInsert;
+export type DeviceLog = typeof deviceLogs.$inferSelect;
+export type DeviceNote = typeof deviceNotes.$inferSelect;
 
 export const ROLE_LABELS: Record<string, string> = {
   super_admin: "مدیر کل (سوپر یوزر)",
@@ -172,4 +242,18 @@ export const STATUS_LABELS: Record<string, string> = {
   delivered: "تحویل به مشتری",
   closed: "تسویه شد",
   cancelled: "لغو شده",
+};
+
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash: "نقدی",
+  card: "کارت‌خوان (POS)",
+  transfer: "انتقال بانکی (کارت به کارت/شبا)",
+  cheque: "چک",
+};
+
+export const WARRANTY_STATUS_LABELS: Record<string, string> = {
+  out_of_warranty: "خارج از گارانتی (آزاد)",
+  in_warranty: "گارانتی شرکت",
+  company_warranty: "گارانتی شرکتی اصلی",
+  other: "گارانتی متفرقه",
 };

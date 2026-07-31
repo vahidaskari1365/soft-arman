@@ -22,22 +22,25 @@ export default function ReportsPage() {
   const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    const p = new URLSearchParams();
-    if (search) p.set("search", search);
-    if (status !== "all") p.set("status", status);
-    if (repairId !== "all") p.set("repairTechnicianId", repairId);
-    if (intakeId !== "all") p.set("intakeTechnicianId", intakeId);
-    if (deviceType !== "all") p.set("deviceType", deviceType);
-    if (dateFrom) p.set("dateFrom", dateFrom);
-    if (dateTo) p.set("dateTo", dateTo);
-    fetch(`/api/reports?${p.toString()}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setItems(d.items || []);
-        setSummary(d.summary || {});
-      })
-      .finally(() => setLoading(false));
+    const timer = setTimeout(() => {
+      setLoading(true);
+      const p = new URLSearchParams();
+      if (search) p.set("search", search);
+      if (status !== "all") p.set("status", status);
+      if (repairId !== "all") p.set("repairTechnicianId", repairId);
+      if (intakeId !== "all") p.set("intakeTechnicianId", intakeId);
+      if (deviceType !== "all") p.set("deviceType", deviceType);
+      if (dateFrom) p.set("dateFrom", dateFrom);
+      if (dateTo) p.set("dateTo", dateTo);
+      fetch(`/api/reports?${p.toString()}`)
+        .then((r) => r.json())
+        .then((d) => {
+          setItems(d.items || []);
+          setSummary(d.summary || {});
+        })
+        .finally(() => setLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, [search, status, repairId, intakeId, deviceType, dateFrom, dateTo]);
 
   function doExport() {

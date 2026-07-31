@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, Button, Input, Field, Select, Textarea } from "@/components/ui";
-import { DEVICE_TYPES } from "@/db/schema";
+import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge } from "@/components/ui";
+import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa } from "@/lib/format";
-import { ClipboardList, Save, Printer, CheckCircle2 } from "lucide-react";
+import { toFa, formatMoney } from "@/lib/format";
+import { ClipboardList, Save, Printer, CheckCircle2, Search, UserCheck, Phone, ShieldCheck, Clock, DollarSign, Key, Hash } from "lucide-react";
 import Link from "next/link";
 
 export default function NewDevicePage() {
@@ -15,6 +15,11 @@ export default function NewDevicePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<{ id: number; ticketNumber: string } | null>(null);
+
+  // Auto-complete customer search
+  const [custQuery, setCustQuery] = useState("");
+  const [custResults, setCustResults] = useState<any[]>([]);
+  const [searchingCust, setSearchingCust] = useState(false);
 
   const [form, setForm] = useState({
     customerName: "",
@@ -29,11 +34,50 @@ export default function NewDevicePage() {
     problem: "",
     estimatedCost: "",
     repairTechnicianId: "",
+    serialNumber: "",
+    devicePassword: "",
+    warrantyStatus: "out_of_warranty",
+    warrantyDays: "0",
+    deadlineDate: "",
+    deposit: "",
   });
 
   function set(k: string, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
   }
+
+  // Search existing customers
+  useEffect(() => {
+    if (!custQuery || custQuery.trim().length < 3) {
+      const timer = setTimeout(() => setCustResults([]), 0);
+      return () => clearTimeout(timer);
+    }
+    const timer = setTimeout(async () => {
+      setSearchingCust(true);
+      try {
+        const res = await fetch(`/api/customers?search=${encodeURIComponent(custQuery)}`).then((r) => r.json());
+        setCustResults(res.items || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSearchingCust(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [custQuery]);
+
+  const selectCustomer = (c: any) => {
+    setForm((f) => ({
+      ...f,
+      customerName: c.name || "",
+      customerPhone: c.phone || "",
+      customerPhone2: c.phone2 || "",
+      customerAddress: c.address || "",
+      nationalId: c.nationalId || "",
+    }));
+    setCustQuery("");
+    setCustResults([]);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,13 +110,20 @@ export default function NewDevicePage() {
                 <Printer className="h-4 w-4" /> چاپ رسید (۲ نسخه A5)
               </Button>
             </Link>
+            <Link href={`/invoice/${created.id}`}>
+              <Button variant="outline" className="w-full">
+                <Printer className="h-4 w-4" /> پیش‌نمایش فاکتور
+              </Button>
+            </Link>
             <Link href="/devices/new">
               <Button variant="outline" className="w-full" onClick={() => setCreated(null)}>
                 پذیرش دستگاه جدید
               </Button>
             </Link>
             <Link href="/inbox">
-              <Button variant="ghost" className="w-full">بازگشت به کارتابل</Button>
+              <Button variant="ghost" className="w-full">
+                بازگشت به کارتابل
+              </Button>
             </Link>
           </div>
         </Card>
@@ -81,45 +132,102 @@ export default function NewDevicePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <div>
         <h1 className="flex items-center gap-2 text-lg font-extrabold text-slate-800 dark:text-white">
           <ClipboardList className="h-5 w-5 text-sky-600" /> پذیرش دستگاه جدید
         </h1>
-        <p className="mt-1 text-xs text-slate-500">اطلاعات مشتری و دستگاه را ثبت کنید.</p>
+        <p className="mt-1 text-xs text-slate-500">اطلاعات مشتری، مشخصات فنی دستگاه، بیعانه و ضرب‌الاجل تحویل را ثبت کنید.</p>
       </div>
 
+      {/* Auto-complete CRM search box */}
+      <Card className="p-4 bg-slate-50/70 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800">
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 dark:text-slate-300">
+            <UserCheck className="h-4 w-4 text-emerald-600" /> جستجوی مشتری قدیمی در CRM (تکمیل خودکار اطلاعات):
+          </label>
+          <div className="relative">
+            <Input
+              value={custQuery}
+              onChange={(e) => setCustQuery(e.target.value)}
+              placeholder="حداقل ۳ حرف از نام، شماره تماس یا کد ملی مشتری سابق را وارد کنید..."
+              className="w-full pl-9 text-xs"
+            />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          </div>
+          {searchingCust && <p className="text-xs text-slate-400">در حال جستجوی مشتری...</p>}
+          {custResults.length > 0 && (
+            <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-md dark:border-slate-800 dark:bg-slate-900">
+              {custResults.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => selectCustomer(c)}
+                  className="flex w-full items-center justify-between rounded p-2 text-right text-xs hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div>
+                    <strong className="text-slate-800 dark:text-white">{c.name}</strong>
+                    <span className="mr-2 font-mono text-slate-500">{toFa(c.phone)}</span>
+                    {c.nationalId && <span className="mr-2 text-slate-400 font-mono">({toFa(c.nationalId)})</span>}
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    انتخاب مشتری ({toFa(c.deviceCount || 0)} سابقه)
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
       <form onSubmit={submit} className="space-y-4">
+        {error && <div className="rounded-lg bg-rose-50 p-3 text-xs font-bold text-rose-700 dark:bg-rose-900/20 dark:text-rose-300">{error}</div>}
+
         <Card>
-          <CardHeader title="اطلاعات مشتری" />
+          <CardHeader title="اطلاعات مشتری" subtitle="اطلاعات هویتی و تماس دارنده دستگاه" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="نام و نام خانوادگی" required>
               <Input value={form.customerName} onChange={(e) => set("customerName", e.target.value)} placeholder="مثلاً علی رضایی" required />
             </Field>
             <Field label="شماره تماس" required>
-              <Input value={form.customerPhone} onChange={(e) => set("customerPhone", toFa(e.target.value))} placeholder="۰۹۱۲۳۴۵۶۷۸۹" inputMode="tel" required />
+              <Input
+                value={form.customerPhone}
+                onChange={(e) => set("customerPhone", toFa(e.target.value))}
+                placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                inputMode="tel"
+                className="font-mono"
+                required
+              />
             </Field>
             <Field label="شماره تماس ثانوی">
-              <Input value={form.customerPhone2} onChange={(e) => set("customerPhone2", toFa(e.target.value))} inputMode="tel" />
+              <Input
+                value={form.customerPhone2}
+                onChange={(e) => set("customerPhone2", toFa(e.target.value))}
+                inputMode="tel"
+                className="font-mono"
+                placeholder="۰۲۱۰۰۰۰۰۰۰۰"
+              />
             </Field>
             <Field label="کد ملی">
-              <Input value={form.nationalId} onChange={(e) => set("nationalId", toFa(e.target.value))} inputMode="numeric" />
+              <Input value={form.nationalId} onChange={(e) => set("nationalId", toFa(e.target.value))} inputMode="numeric" className="font-mono" />
             </Field>
             <div className="sm:col-span-2">
               <Field label="آدرس">
-                <Input value={form.customerAddress} onChange={(e) => set("customerAddress", e.target.value)} />
+                <Input value={form.customerAddress} onChange={(e) => set("customerAddress", e.target.value)} placeholder="تهران، ..." />
               </Field>
             </div>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="اطلاعات دستگاه و عیب" />
+          <CardHeader title="اطلاعات دستگاه، عیب و سریال" subtitle="مشخصات سخت‌افزاری و شرح مشکل" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="نوع دستگاه" required>
               <Select value={form.deviceType} onChange={(e) => set("deviceType", e.target.value)}>
                 {DEVICE_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </Select>
             </Field>
@@ -129,38 +237,73 @@ export default function NewDevicePage() {
             <Field label="مدل دستگاه" required>
               <Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="مثلاً Galaxy A54" required />
             </Field>
-            <Field label="متععلقات همراه دستگاه" hint="شارژر، قاب، گلس و...">
-              <Input value={form.accessories} onChange={(e) => set("accessories", e.target.value)} />
+            <Field label="شماره سریال / IMEI" hint="جهت جلوگیری از تشابه دستگاه و پیگیری‌های حقوقی">
+              <Input
+                value={form.serialNumber}
+                onChange={(e) => set("serialNumber", e.target.value)}
+                placeholder="358900000000000"
+                className="font-mono"
+              />
             </Field>
-            <Field label="شرح مشکل / عیب اعلامی" required>
-              <Textarea value={form.problem} onChange={(e) => set("problem", e.target.value)} placeholder="شرح دقیق مشکل دستگاه" required />
+            <Field label="رمز عبور / الگو (Pattern/PIN) دستگاه" hint="جهت تست و بررسی توسط کارشناس تعمیر">
+              <Input value={form.devicePassword} onChange={(e) => set("devicePassword", e.target.value)} placeholder="مثلاً 1234 یا علامت Z" />
             </Field>
-            <Field label="هزینه تخمینی تعمیر (تومان)">
-              <Input value={form.estimatedCost} onChange={(e) => set("estimatedCost", toFa(e.target.value))} inputMode="numeric" placeholder="۰" />
+            <Field label="متعلقات همراه دستگاه" hint="شارژر، قاب، گلس، کارتن و...">
+              <Input value={form.accessories} onChange={(e) => set("accessories", e.target.value)} placeholder="آداپتور و کابل اصلی" />
             </Field>
             <div className="sm:col-span-2">
-              <Field label="ارجاع به کارشناس تعمیر" required>
-                <Select value={form.repairTechnicianId} onChange={(e) => set("repairTechnicianId", e.target.value)} required>
-                  <option value="">— انتخاب کارشناس —</option>
-                  {techData?.repair?.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.fullName}</option>
-                  ))}
-                </Select>
+              <Field label="شرح مشکل / عیب اعلامی" required>
+                <Textarea value={form.problem} onChange={(e) => set("problem", e.target.value)} placeholder="شرح دقیق مشکل دستگاه از زبان مشتری..." required />
               </Field>
             </div>
           </div>
         </Card>
 
-        {error && (
-          <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-xs font-medium text-rose-700 dark:bg-rose-900/20 dark:text-rose-300">
-            {error}
+        <Card>
+          <CardHeader title="گارانتی، زمان تحویل (SLA) و امور مالی پذیرش" subtitle="شرایط مالی، بیعانه و تعیین مهلت تحویل" />
+          <div className="grid gap-4 p-5 sm:grid-cols-2">
+            <Field label="وضعیت گارانتی در زمان پذیرش">
+              <Select value={form.warrantyStatus} onChange={(e) => set("warrantyStatus", e.target.value)}>
+                {Object.entries(WARRANTY_STATUS_LABELS).map(([k, label]) => (
+                  <option key={k} value={k}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="مدت گارانتی تعمیر (روز)" hint="مدت ضمانت کار انجام‌گرفته (مثلاً ۳۰ روز)">
+              <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
+            </Field>
+            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)">
+              <Input type="date" value={form.deadlineDate} onChange={(e) => set("deadlineDate", e.target.value)} />
+            </Field>
+            <Field label="بیعانه / پیش‌پرداخت دریافتی (ریال)" hint="مبلغ پرداختی توسط مشتری هنگام ثبت پذیرش">
+              <Input value={form.deposit} onChange={(e) => set("deposit", toFa(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
+            </Field>
+            <Field label="هزینه تخمینی تعمیر (ریال)">
+              <Input value={form.estimatedCost} onChange={(e) => set("estimatedCost", toFa(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
+            </Field>
+            <Field label="ارجاع به کارشناس تعمیر" required>
+              <Select value={form.repairTechnicianId} onChange={(e) => set("repairTechnicianId", e.target.value)} required>
+                <option value="">— انتخاب کارشناس —</option>
+                {techData?.repair?.map((t: any) => (
+                  <option key={t.id} value={t.id}>
+                    {t.fullName}
+                  </option>
+                ))}
+              </Select>
+            </Field>
           </div>
-        )}
+        </Card>
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>انصراف</Button>
-          <Button type="submit" loading={loading}>
-            <Save className="h-4 w-4" /> ثبت پذیرش
+        <div className="flex justify-end gap-3 pt-2">
+          <Link href="/devices">
+            <Button type="button" variant="outline">
+              انصراف
+            </Button>
+          </Link>
+          <Button type="submit" variant="primary" loading={loading}>
+            <Save className="h-4 w-4" /> ثبت پذیرش و صدور رسید
           </Button>
         </div>
       </form>

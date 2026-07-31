@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { devices, customers, users, partRequests, accountingRecords } from "@/db/schema";
+import { devices, customers, users, partRequests, accountingRecords, deviceLogs, deviceNotes } from "@/db/schema";
 import { and, eq, gte, lte, ilike, desc, sql, getTableColumns } from "drizzle-orm";
 
 export type DeviceFilters = {
@@ -109,7 +109,62 @@ export async function getDeviceDetail(id: number) {
     .where(eq(accountingRecords.deviceId, id))
     .limit(1);
 
-  return { ...device, parts, accounting: acc[0] ?? null };
+  const logs = await db
+    .select({
+      id: deviceLogs.id,
+      action: deviceLogs.action,
+      fromStatus: deviceLogs.fromStatus,
+      toStatus: deviceLogs.toStatus,
+      note: deviceLogs.note,
+      createdAt: deviceLogs.createdAt,
+      userName: sql<string | null>`u_log.full_name`,
+      userRole: sql<string | null>`u_log.role`,
+    })
+    .from(deviceLogs)
+    .leftJoin(sql`${users} as u_log`, sql`u_log.id = ${deviceLogs.userId}`)
+    .where(eq(deviceLogs.deviceId, id))
+    .orderBy(desc(deviceLogs.createdAt));
+
+  const notes = await db
+    .select({
+      id: deviceNotes.id,
+      note: deviceNotes.note,
+      createdAt: deviceNotes.createdAt,
+      userName: sql<string | null>`u_note.full_name`,
+      userRole: sql<string | null>`u_note.role`,
+    })
+    .from(deviceNotes)
+    .leftJoin(sql`${users} as u_note`, sql`u_note.id = ${deviceNotes.userId}`)
+    .where(eq(deviceNotes.deviceId, id))
+    .orderBy(desc(deviceNotes.createdAt));
+
+  return { ...device, parts, accounting: acc[0] ?? null, logs, notes };
+}
+
+export async function logDeviceAction(
+  deviceId: number,
+  userId: number | null,
+  action: string,
+  fromStatus?: string | null,
+  toStatus?: string | null,
+  note?: string | null
+) {
+  await db.insert(deviceLogs).values({
+    deviceId,
+    userId: userId || null,
+    action,
+    fromStatus: fromStatus || null,
+    toStatus: toStatus || null,
+    note: note || null,
+  });
+}
+
+export async function addDeviceNote(deviceId: number, userId: number, note: string) {
+  await db.insert(deviceNotes).values({
+    deviceId,
+    userId,
+    note,
+  });
 }
 
 export async function getTechnicians(role: "repair_technician" | "intake_technician") {

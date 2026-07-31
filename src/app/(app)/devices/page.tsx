@@ -20,21 +20,24 @@ export default function DevicesListPage() {
   const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    const p = new URLSearchParams();
-    if (search) p.set("search", search);
-    if (status !== "all") p.set("status", status);
-    if (repairId !== "all") p.set("repairTechnicianId", repairId);
-    if (deviceType !== "all") p.set("deviceType", deviceType);
-    if (dateFrom) p.set("dateFrom", dateFrom);
-    if (dateTo) p.set("dateTo", dateTo);
-    fetch(`/api/devices?${p.toString()}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setItems(d.items || []);
-        setTechs(d.repairTechs || []);
-      })
-      .finally(() => setLoading(false));
+    const timer = setTimeout(() => {
+      setLoading(true);
+      const p = new URLSearchParams();
+      if (search) p.set("search", search);
+      if (status !== "all") p.set("status", status);
+      if (repairId !== "all") p.set("repairTechnicianId", repairId);
+      if (deviceType !== "all") p.set("deviceType", deviceType);
+      if (dateFrom) p.set("dateFrom", dateFrom);
+      if (dateTo) p.set("dateTo", dateTo);
+      fetch(`/api/devices?${p.toString()}`)
+        .then((r) => r.json())
+        .then((d) => {
+          setItems(d.items || []);
+          setTechs(d.repairTechs || []);
+        })
+        .finally(() => setLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, [search, status, repairId, deviceType, dateFrom, dateTo]);
 
   function doExport() {

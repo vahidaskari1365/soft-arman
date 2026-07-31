@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { devices, partRequests } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
-import { getDeviceDetail } from "@/lib/queries";
+import { getDeviceDetail, logDeviceAction } from "@/lib/queries";
 import { notifyRoles, getServiceManagers } from "@/lib/notify";
 
 /** Repair technician requests a part (or marks no parts needed). */
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const body = await req.json().catch(() => ({}));
-  const { needsParts, partName, partModel, partPrice, supplier, notes } = body as any;
+  const { needsParts, partName, partModel, partPrice, supplier, notes, inventoryItemId } = body as any;
 
   if (needsParts) {
     if (!partName) return NextResponse.json({ error: "نام قطعه الزامی است" }, { status: 400 });
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       partPrice: String(partPrice || 0),
       supplier: supplier || null,
       notes: notes || null,
+      inventoryItemId: inventoryItemId ? Number(inventoryItemId) : null,
       status: "pending",
       requestedById: user.id,
     });
@@ -37,6 +38,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .update(devices)
       .set({ needsParts: true, status: "awaiting_parts", updatedAt: new Date() })
       .where(eq(devices.id, deviceId));
+
+    await logDeviceAction(deviceId, user.id, "درخواست قطعه", device.status, "awaiting_parts", `درخواست قطعه «${partName}» ثبت شد.`);
 
     const managers = await getServiceManagers();
     await notifyRoles(["service_manager", "super_admin"], {
@@ -53,6 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .update(devices)
       .set({ needsParts: false, status: "in_progress", updatedAt: new Date() })
       .where(eq(devices.id, deviceId));
+    await logDeviceAction(deviceId, user.id, "شروع تعمیر", device.status, "in_progress", "تعمیر بدون نیاز به قطعه آغاز شد.");
     return NextResponse.json({ ok: true, status: "in_progress" });
   }
 }

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { devices } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
-import { getDeviceDetail } from "@/lib/queries";
+import { getDeviceDetail, logDeviceAction } from "@/lib/queries";
 import { notify } from "@/lib/notify";
 
 /** Repair technician completes the repair -> sends back to intake technician. */
@@ -29,6 +29,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       updatedAt: new Date(),
     })
     .where(eq(devices.id, deviceId));
+
+  await logDeviceAction(
+    deviceId,
+    user.id,
+    "اتمام تعمیر",
+    device.status,
+    "repair_done",
+    body.operationsDone || "تعمیر دستگاه توسط کارشناس تکمیل شد."
+  );
 
   if (device.intakeTechnicianId) {
     await notify(device.intakeTechnicianId, {

@@ -19,7 +19,10 @@ export default function ApprovalsPage() {
       .then((d) => setItems(d.items || []))
       .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(() => {
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   async function decide(id: number, action: "approve" | "reject") {
     setBusy(id);
