@@ -377,7 +377,6 @@ export default function NewDevicePage() {
               deposit: form.deposit || "0",
               deadlineDate: form.deadlineDate || "",
               deliveryType: form.deliveryType,
-              deliveryType: form.deliveryType,
             };
             return (
               <>
