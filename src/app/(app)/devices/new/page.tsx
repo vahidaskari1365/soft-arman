@@ -235,22 +235,20 @@ export default function NewDevicePage() {
         <Card>
           <CardHeader title="اطلاعات دستگاه، عیب و سریال" subtitle="مشخصات سخت‌افزاری و شرح مشکل" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <Field label="نوع دستگاه" required>
-              <Select value={form.deviceType} onChange={(e) => set("deviceType", e.target.value)}>
-                {DEVICE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="برند">
+            <Field label="مارک دستگاه">
               <Select value={form.brand} onChange={(e) => { set("brand", e.target.value); set("model", ""); }}>
-                <option value="">انتخاب برند</option>
+                <option value="">انتخاب مارک دستگاه</option>
                 {Object.keys(PHONE_BRANDS).map((brand) => (
                   <option key={brand} value={brand}>{brand}</option>
                 ))}
                 <option value="سایر">سایر</option>
+              </Select>
+            </Field>
+            <Field label="نوع دستگاه" required>
+              <Select value={form.deviceType} onChange={(e) => set("deviceType", e.target.value)}>
+                {DEVICE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
               </Select>
             </Field>
             <Field label="مدل دستگاه" required>
@@ -273,17 +271,20 @@ export default function NewDevicePage() {
                 className="font-mono"
               />
             </Field>
+            <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+              <Field label="عیب به اظهار مشتری" required>
+                <Textarea value={form.problem} onChange={(e) => set("problem", e.target.value)} placeholder="عیب دستگاه را به نقل از مشتری وارد کنید..." required />
+              </Field>
+              <Field label="توضیحات">
+                <Textarea placeholder="توضیحات تکمیلی پذیرش..." />
+              </Field>
+            </div>
+            <Field label="لوازم همراه" hint="شارژر، قاب، گلس، کارتن و...">
+              <Input value={form.accessories} onChange={(e) => set("accessories", e.target.value)} placeholder="آداپتور و کابل اصلی" />
+            </Field>
             <Field label="رمز عبور / الگو (Pattern/PIN) دستگاه" hint="جهت تست و بررسی توسط کارشناس تعمیر">
               <Input value={form.devicePassword} onChange={(e) => set("devicePassword", e.target.value)} placeholder="مثلاً 1234 یا علامت Z" />
             </Field>
-            <Field label="متعلقات همراه دستگاه" hint="شارژر، قاب، گلس، کارتن و...">
-              <Input value={form.accessories} onChange={(e) => set("accessories", e.target.value)} placeholder="آداپتور و کابل اصلی" />
-            </Field>
-            <div className="sm:col-span-2">
-              <Field label="شرح مشکل / عیب اعلامی" required>
-                <Textarea value={form.problem} onChange={(e) => set("problem", e.target.value)} placeholder="شرح دقیق مشکل دستگاه از زبان مشتری..." required />
-              </Field>
-            </div>
           </div>
         </Card>
 
