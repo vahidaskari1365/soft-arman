@@ -28,13 +28,12 @@ export function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string;
           <div>
             <h1 className="text-lg font-extrabold">{company}</h1>
             <p className="text-[11px] text-slate-600">{cfg.tagline || "سامانه مدیریت تعمیرات و قطعات"}</p>
-            <p className="text-[11px] text-slate-600">تلفن: {toFa(cfg.phone || "—")} {cfg.address ? `• ${cfg.address}` : ""}</p>
           </div>
         </div>
         <div className="text-center">
           <p className="rounded-lg bg-slate-800 px-3 py-1 text-xs font-bold text-white">رسید پذیرش دستگاه</p>
           <p className="mt-1 text-[11px] text-slate-500 font-bold">{copyLabel}</p>
-          <div className="mt-1 flex gap-3 text-[10px] text-slate-600">
+          <div className="mt-1 flex justify-end gap-3 text-[10px] text-slate-600">
             <span>شماره رسید: <b className="font-mono">{toFa(d.ticketNumber)}</b></span>
             <span>تاریخ: {formatDateTime(d.intakeDate)}</span>
           </div>

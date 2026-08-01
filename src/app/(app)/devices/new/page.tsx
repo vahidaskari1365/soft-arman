@@ -370,13 +370,16 @@ export default function NewDevicePage() {
               serialNumber: form.serialNumber || "",
               warrantyStatus: form.warrantyStatus === "out_of_warranty" ? "" : form.warrantyStatus,
               accessories: form.accessories || "",
+              devicePassword: form.devicePassword || "",
+              deliveryType: form.deliveryType,
+              warrantyDays: Number(form.warrantyDays) || 0,
               status: "registered",
               problem: form.problem || "—",
               repairTechName: repairTechName,
               estimatedCost: form.estimatedCost || "0",
               deposit: form.deposit || "0",
+              finalCost: form.estimatedCost || "0",
               deadlineDate: form.deadlineDate || "",
-              deliveryType: form.deliveryType,
             };
             return (
               <>
