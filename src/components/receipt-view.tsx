@@ -2,7 +2,7 @@
 
 import { toFa, formatMoney, formatDateTime, formatShortDate } from "@/lib/format";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS } from "@/db/schema";
-import { TicketBarcode, TicketQrCode } from "@/components/qr-barcode";
+import { TicketBarcode } from "@/components/qr-barcode";
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
@@ -52,30 +52,30 @@ export function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string;
         <Row k="شماره تماس" v={toFa(d.customerPhone)} />
         <Row k="تلفن ثانوی" v={d.customerPhone2 ? toFa(d.customerPhone2) : "—"} />
         <Row k="کد ملی" v={d.customerNationalId ? toFa(d.customerNationalId) : "—"} />
+        <Row k="مارک دستگاه" v={d.brand || "—"} />
         <Row k="نوع دستگاه" v={d.deviceType} />
-        <Row k="برند / مدل" v={[d.brand, d.model].filter(Boolean).join(" - ")} />
+        <Row k="مدل دستگاه" v={d.model} />
         {d.serialNumber && <Row k="شماره سریال / IMEI" v={d.serialNumber} />}
         {d.warrantyStatus && <Row k="وضعیت گارانتی" v={WARRANTY_STATUS_LABELS[d.warrantyStatus] || "—"} />}
         <Row k="متعلقات" v={d.accessories || "—"} />
         <Row k="وضعیت" v={STATUS_LABELS[d.status] || d.status} />
         <Row k="نوع تحویل" v={d.deliveryType === "shipping" ? "ارسالی" : "حضوری"} />
         <div className="col-span-2">
-          <Row k="شرح مشکل" v={d.problem} />
+          <Row k="عیب به اظهار مشتری" v={d.problem} />
         </div>
         <Row k="کارشناس تعمیر" v={d.repairTechName || "—"} />
         <Row k="هزینه تخمینی" v={formatMoney(d.estimatedCost)} />
         {Number(d.deposit) > 0 && <Row k="پیش‌پرداخت / بیعانه" v={formatMoney(d.deposit)} />}
-        {d.deadlineDate && <Row k="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" v={formatShortDate(d.deadlineDate)} />}
+        {d.deadlineDate && <Row k="تاریخ تخمینی تحویل دستگاه" v={formatShortDate(d.deadlineDate)} />}
       </div>
 
       {d.customerAddress && (
         <div className="mt-1.5 text-[12px]"><span className="text-slate-500">آدرس: </span>{d.customerAddress}</div>
       )}
 
-      {/* barcode & QR */}
+      {/* barcode */}
       <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
-        <div className="flex items-center gap-3">
-          <TicketQrCode value={d.ticketNumber} size={56} />
+        <div className="flex items-center">
           <TicketBarcode value={d.ticketNumber} height={32} />
         </div>
         <div className="max-w-xs text-[10px] text-slate-500 leading-relaxed">
