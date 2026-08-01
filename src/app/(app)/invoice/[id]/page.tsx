@@ -88,10 +88,13 @@ function InvoiceCopyView({
         <Row k="شماره تماس" v={toFa(d.customerPhone)} />
         {d.customerNationalId && <Row k="کد ملی" v={toFa(d.customerNationalId)} />}
         {d.customerAddress && <Row k="آدرس مشتری" v={d.customerAddress} />}
-        <Row k="نوع دستگاه / برند" v={[d.deviceType, d.brand].filter(Boolean).join(" - ")} />
+        <Row k="مارک دستگاه" v={d.brand || "—"} />
+        <Row k="نوع دستگاه" v={d.deviceType} />
+        <Row k="مدل دستگاه" v={d.model} />
+        <Row k="نوع تحویل" v={d.deliveryType === "shipping" ? "ارسالی" : "حضوری"} />
         <Row k="مدل دستگاه" v={d.model} />
         {d.serialNumber && <Row k="شماره سریال / IMEI" v={d.serialNumber} />}
-        <Row k="شرح مشکل اولیه" v={d.problem} />
+        <Row k="عیب به اظهار مشتری" v={d.problem} />
         {d.operationsDone && <Row k="عملیات انجام‌شده" v={d.operationsDone} />}
       </div>
 
