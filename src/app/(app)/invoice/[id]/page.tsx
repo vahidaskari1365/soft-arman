@@ -102,7 +102,7 @@ function InvoiceCopyView({
             <ShieldCheck className="h-4 w-4 text-emerald-700" />
             <span>ضمانت خدمات تعمیر: {WARRANTY_STATUS_LABELS[d.warrantyStatus || "out_of_warranty"] || "—"}</span>
           </div>
-          {d.warrantyDays > 0 && <span className="font-mono font-extrabold">{formatNumber(d.warrantyDays)} روز گارانتی تعمیر</span>}
+          {d.warrantyDays > 0 && <span className="font-mono font-extrabold">تعیین حدود زمان تعمیر: {formatNumber(d.warrantyDays)} روز</span>}
         </div>
       )}
 

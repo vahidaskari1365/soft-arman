@@ -296,7 +296,7 @@ export default function NewDevicePage() {
                 {WARRANTY_STATUS_LABELS.out_of_warranty}
               </div>
             </Field>
-            <Field label="مدت گارانتی تعمیر (روز)" hint="مدت ضمانت کار انجام‌گرفته (مثلاً ۳۰ روز)">
+            <Field label="تعیین حدود زمان تعمیر" hint="مدت تقریبی انجام تعمیر را به روز وارد کنید">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
             </Field>
             <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" hint="تاریخ شمسی را بنویسید یا از تقویم انتخاب کنید">

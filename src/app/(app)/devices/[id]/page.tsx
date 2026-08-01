@@ -197,7 +197,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
               <Info label="هزینه تخمینی" value={formatMoney(d.estimatedCost)} />
               {Number(d.deposit) > 0 && <Info label="پیش‌پرداخت / بیعانه" value={formatMoney(d.deposit)} />}
               {d.warrantyStatus && <Info label="وضعیت گارانتی پذیرش" value={WARRANTY_STATUS_LABELS[d.warrantyStatus] || "—"} />}
-              {d.warrantyDays > 0 && <Info label="مدت گارانتی تعمیر" value={`${formatNumber(d.warrantyDays)} روز`} />}
+              {d.warrantyDays > 0 && <Info label="تعیین حدود زمان تعمیر" value={`${formatNumber(d.warrantyDays)} روز`} />}
               {d.deadlineDate && <Info label="تاریخ تحویل تقریبی (SLA)" value={formatShortDate(d.deadlineDate)} />}
               <div className="sm:col-span-2">
                 <Info label="شرح مشکل" value={d.problem} />
