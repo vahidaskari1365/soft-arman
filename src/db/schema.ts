@@ -252,7 +252,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 export const WARRANTY_STATUS_LABELS: Record<string, string> = {
-  out_of_warranty: "خارج از گارانتی (آزاد)",
+  out_of_warranty: "فاقد گارانتی",
   in_warranty: "گارانتی شرکت",
   company_warranty: "گارانتی شرکتی اصلی",
   other: "گارانتی متفرقه",

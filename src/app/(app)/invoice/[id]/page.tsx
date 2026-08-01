@@ -6,7 +6,7 @@ import { toFa, formatNumber, formatMoney, formatDateTime } from "@/lib/format";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
 import { Printer, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { TicketBarcode, TicketQrCode } from "@/components/qr-barcode";
+import { TicketBarcode } from "@/components/qr-barcode";
 
 function InvoiceCopyView({
   copyLabel,
@@ -106,61 +106,18 @@ function InvoiceCopyView({
         </div>
       )}
 
-      {/* Itemized Parts Table */}
-      <div className="my-4">
-        <h3 className="mb-2 text-xs font-extrabold text-slate-800">ریز قطعات مصرفی و خدمات فنی</h3>
-        <table className="w-full text-right text-xs border-collapse">
-          <thead>
-            <tr className="border-y-2 border-slate-800 bg-slate-50 font-bold">
-              <th className="py-2 px-3">شرح خدمت / نام قطعه</th>
-              <th className="py-2 px-3">مدل / توضیحات</th>
-              <th className="py-2 px-3 text-left">مبلغ (ریال)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {/* Labor row */}
-            <tr>
-              <td className="py-2 px-3 font-bold">اجرت تعمیرات و خدمات فنی تخصصی</td>
-              <td className="py-2 px-3 text-slate-500">{d.operationsDone || "خدمات عیب‌یابی و رفع عیب"}</td>
-              <td className="py-2 px-3 text-left font-mono font-bold">{formatMoney(laborCost)}</td>
-            </tr>
-            {/* Parts rows */}
-            {approvedParts.map((p: any) => (
-              <tr key={p.id}>
-                <td className="py-2 px-3">{p.partName}</td>
-                <td className="py-2 px-3 text-slate-500">{p.partModel || "قطعه تعویضی"}</td>
-                <td className="py-2 px-3 text-left font-mono">{formatMoney(p.partPrice)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Financial totals breakdown */}
-      <div className="mt-4 flex justify-end border-t border-slate-300 pt-3">
-        <div className="w-80 space-y-1.5 text-xs">
-          <Row k="جمع هزینه قطعات مصرفی:" v={formatMoney(partCostTotal)} />
-          <Row k="اجرت تعمیر و خدمات فنی:" v={formatMoney(laborCost)} />
-          <Row k="جمع کل خدمات و قطعات:" v={formatMoney(subtotal)} />
-          {discount > 0 && <Row k="تخفیف:" v={formatMoney(discount)} />}
-          {tax > 0 && <Row k="مالیات بر ارزش افزوده:" v={formatMoney(tax)} />}
-          {deposit > 0 && <Row k="کسر پیش‌پرداخت / بیعانه:" v={formatMoney(deposit)} />}
-          <div className="my-1 border-t-2 border-slate-800" />
-          <div className="flex justify-between font-bold text-sm">
-            <span>مبلغ نهایی پرداخت‌شده / قابل پرداخت:</span>
+      {/* Final payable amount */}
+      <div className="mt-4 flex justify-end border-t-2 border-slate-800 pt-3">
+        <div className="w-80">
+          <div className="flex justify-between font-bold text-base">
+            <span>مبلغ نهایی قابل پرداخت:</span>
             <span className="font-mono">{formatMoney(finalPayable || grandTotal)}</span>
-          </div>
-          <div className="flex justify-between text-[11px] text-slate-600 pt-1">
-            <span>روش تسویه:</span>
-            <span className="font-bold">{paymentMethodLabel}</span>
           </div>
         </div>
       </div>
-
       {/* Barcode / QR & Terms footer */}
       <div className="mt-6 flex flex-wrap items-center justify-between border-t border-slate-300 pt-4">
-        <div className="flex items-center gap-4">
-          <TicketQrCode value={d.ticketNumber} size={64} />
+        <div className="flex items-center">
           <TicketBarcode value={d.ticketNumber} height={36} />
         </div>
 
