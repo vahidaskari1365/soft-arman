@@ -81,6 +81,7 @@ export const devices = pgTable("devices", {
   deposit: numeric("deposit", { precision: 14, scale: 0 }).default("0"),
   intakeDate: timestamp("intake_date", { withTimezone: true }).defaultNow().notNull(),
   deliveryDate: timestamp("delivery_date", { withTimezone: true }),
+  deliveryType: text("delivery_type").default("in_person"),
   closedDate: timestamp("closed_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

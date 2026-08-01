@@ -47,6 +47,7 @@ export default function NewDevicePage() {
     warrantyStatus: "out_of_warranty",
     warrantyDays: "0",
     deadlineDate: "",
+    deliveryType: "in_person",
     deposit: "",
   });
 
@@ -299,7 +300,13 @@ export default function NewDevicePage() {
             <Field label="تعیین حدود زمان تعمیر" hint="مدت تقریبی انجام تعمیر را به روز وارد کنید">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
             </Field>
-            <Field label="تاریخ تحویل تقریبی / ضرب‌الاجل (SLA)" hint="تاریخ شمسی را بنویسید یا از تقویم انتخاب کنید">
+            <Field label="نوع تحویل">
+              <Select value={form.deliveryType} onChange={(e) => set("deliveryType", e.target.value)}>
+                <option value="in_person">حضوری</option>
+                <option value="shipping">ارسالی</option>
+              </Select>
+            </Field>
+            <Field label="تاریخ تخمینی تحویل دستگاه" hint="تاریخ شمسی را بنویسید یا از تقویم انتخاب کنید">
               <ShamsiDatePicker
                 value={form.deadlineDate}
                 onChange={(v) => set("deadlineDate", v)}
@@ -369,6 +376,8 @@ export default function NewDevicePage() {
               estimatedCost: form.estimatedCost || "0",
               deposit: form.deposit || "0",
               deadlineDate: form.deadlineDate || "",
+              deliveryType: form.deliveryType,
+              deliveryType: form.deliveryType,
             };
             return (
               <>

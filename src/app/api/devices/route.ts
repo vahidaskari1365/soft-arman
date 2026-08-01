@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
     warrantyStatus,
     warrantyDays,
     deadlineDate,
+    deliveryType,
     deposit,
   } = body as any;
 
@@ -116,6 +117,7 @@ export async function POST(req: NextRequest) {
       warrantyStatus: warrantyStatus || "out_of_warranty",
       warrantyDays: Number(warrantyDays) || 0,
       deadlineDate: deadlineDate ? new Date(deadlineDate) : null,
+      deliveryType: deliveryType || "in_person",
       deposit: String(deposit || 0),
     })
     .returning({ id: devices.id });

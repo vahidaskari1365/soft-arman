@@ -86,7 +86,7 @@ export function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string;
       {/* signatures */}
       <div className="mt-6 flex items-end justify-between text-[11px] text-slate-600">
         <div className="w-40 border-t border-slate-500 pt-1 text-center">امضا و اثر انگشت مشتری</div>
-        <div className="w-40 border-t border-slate-500 pt-1 text-center">امضا و مهر مرکز</div>
+
       </div>
     </div>
   );
