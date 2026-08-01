@@ -232,6 +232,17 @@ export const DEVICE_TYPES = [
   "متفرقه",
 ];
 
+export const PHONE_BRANDS: Record<string, string[]> = {
+  "اپل": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15", "iPhone 14 Pro Max", "iPhone 14", "iPhone 13", "iPhone 12", "iPhone SE"],
+  "سامسونگ": ["Galaxy S24 Ultra", "Galaxy S24", "Galaxy S23", "Galaxy A55", "Galaxy A54", "Galaxy A35", "Galaxy A25", "Galaxy A15", "Galaxy Note 20"],
+  "شیائومی": ["Xiaomi 14", "Xiaomi 13", "Redmi Note 13 Pro", "Redmi Note 13", "Redmi Note 12", "Poco X6 Pro", "Poco X5 Pro"],
+  "هواوی": ["P60 Pro", "Nova 11", "Nova 10", "Y70", "Y9a", "Mate 50 Pro"],
+  "نوکیا": ["G42", "G22", "C32", "C22", "105", "3310"],
+  "وان‌پلاس": ["OnePlus 12", "OnePlus 11", "Nord 3", "Nord CE 3 Lite"],
+  "موتورولا": ["Edge 50 Pro", "Edge 40", "Moto G84", "Moto G54"],
+  "آنر": ["Magic6 Pro", "Honor 200", "X8b", "X7b"],
+};
+
 export const STATUS_LABELS: Record<string, string> = {
   registered: "ثبت پذیرش",
   assigned: "نزد کارشناس تعمیر",

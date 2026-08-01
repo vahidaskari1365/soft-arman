@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Modal } from "@/components/ui";
 import ShamsiDatePicker from "@/components/shamsi-date-picker";
-import { DEVICE_TYPES, WARRANTY_STATUS_LABELS } from "@/db/schema";
+import { DEVICE_TYPES, WARRANTY_STATUS_LABELS, PHONE_BRANDS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
 import { toFa, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput, makeTicketNumber } from "@/lib/format";
 import { ReceiptView } from "@/components/receipt-view";
@@ -245,10 +245,25 @@ export default function NewDevicePage() {
               </Select>
             </Field>
             <Field label="برند">
-              <Input value={form.brand} onChange={(e) => set("brand", e.target.value)} placeholder="مثلاً سامسونگ، اپل، سونی" />
+              <Select value={form.brand} onChange={(e) => { set("brand", e.target.value); set("model", ""); }}>
+                <option value="">انتخاب برند</option>
+                {Object.keys(PHONE_BRANDS).map((brand) => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
+                <option value="سایر">سایر</option>
+              </Select>
             </Field>
             <Field label="مدل دستگاه" required>
-              <Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="مثلاً Galaxy A54" required />
+              {form.brand && PHONE_BRANDS[form.brand] ? (
+                <Select value={form.model} onChange={(e) => set("model", e.target.value)} required>
+                  <option value="">انتخاب مدل</option>
+                  {PHONE_BRANDS[form.brand].map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </Select>
+              ) : (
+                <Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="مدل دستگاه" required />
+              )}
             </Field>
             <Field label="شماره سریال / IMEI" hint="جهت جلوگیری از تشابه دستگاه و پیگیری‌های حقوقی">
               <Input
