@@ -103,7 +103,7 @@ textarea {
 /* ---- A5 landscape receipt print ---- */
 @media print {
   @page {
-    size: A5 portrait;
+    size: A5 landscape;
     margin: 6mm;
   }
   body * {
