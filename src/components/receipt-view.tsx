@@ -34,58 +34,63 @@ export function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string;
         <div className="text-center">
           <p className="rounded-lg bg-slate-800 px-3 py-1 text-xs font-bold text-white">رسید پذیرش دستگاه</p>
           <p className="mt-1 text-[11px] text-slate-500 font-bold">{copyLabel}</p>
+          <div className="mt-1 flex gap-3 text-[10px] text-slate-600">
+            <span>شماره رسید: <b className="font-mono">{toFa(d.ticketNumber)}</b></span>
+            <span>تاریخ: {formatDateTime(d.intakeDate)}</span>
+          </div>
         </div>
       </div>
 
-      {/* ticket */}
-      <div className="my-3 flex items-center justify-between rounded-lg bg-slate-100 px-4 py-2">
-        <div>
-          <span className="text-[11px] text-slate-500">شماره رسید: </span>
-          <span className="font-mono text-lg font-extrabold tracking-wider">{toFa(d.ticketNumber)}</span>
+      <div className="mt-2 rounded-lg border border-slate-300 p-2.5">
+        <p className="mb-1.5 border-b border-slate-200 pb-1 text-[10px] font-extrabold text-slate-700">اطلاعات مشتری و دستگاه</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+          <Row k="نام مشتری" v={d.customerName} />
+          <Row k="شماره تماس" v={toFa(d.customerPhone)} />
+          <Row k="تلفن ثانوی" v={d.customerPhone2 ? toFa(d.customerPhone2) : "—"} />
+          <Row k="کد ملی" v={d.customerNationalId ? toFa(d.customerNationalId) : "—"} />
+          <Row k="مارک دستگاه" v={d.brand || "—"} />
+          <Row k="نوع دستگاه" v={d.deviceType} />
+          <Row k="مدل دستگاه" v={d.model} />
+          {d.serialNumber && <Row k="شماره سریال / IMEI" v={d.serialNumber} />}
+          <Row k="وضعیت گارانتی" v={WARRANTY_STATUS_LABELS[d.warrantyStatus || "out_of_warranty"] || "فاقد گارانتی"} />
+          <Row k="نوع تحویل" v={d.deliveryType === "shipping" ? "ارسالی" : "حضوری"} />
+          <Row k="وضعیت" v={STATUS_LABELS[d.status] || d.status} />
+          {d.deadlineDate && <Row k="تاریخ تخمینی تحویل دستگاه" v={formatShortDate(d.deadlineDate)} />}
         </div>
-        <div className="text-[11px] text-slate-600">تاریخ پذیرش: {formatDateTime(d.intakeDate)}</div>
       </div>
-
-      {/* info grid */}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-[12px]">
-        <Row k="نام مشتری" v={d.customerName} />
-        <Row k="شماره تماس" v={toFa(d.customerPhone)} />
-        <Row k="تلفن ثانوی" v={d.customerPhone2 ? toFa(d.customerPhone2) : "—"} />
-        <Row k="کد ملی" v={d.customerNationalId ? toFa(d.customerNationalId) : "—"} />
-        <Row k="مارک دستگاه" v={d.brand || "—"} />
-        <Row k="نوع دستگاه" v={d.deviceType} />
-        <Row k="مدل دستگاه" v={d.model} />
-        {d.serialNumber && <Row k="شماره سریال / IMEI" v={d.serialNumber} />}
-        {d.warrantyStatus && <Row k="وضعیت گارانتی" v={WARRANTY_STATUS_LABELS[d.warrantyStatus] || "—"} />}
-        <Row k="متعلقات" v={d.accessories || "—"} />
-        <Row k="وضعیت" v={STATUS_LABELS[d.status] || d.status} />
-        <Row k="نوع تحویل" v={d.deliveryType === "shipping" ? "ارسالی" : "حضوری"} />
-        <div className="col-span-2">
+      <div className="mt-2 rounded-lg border border-slate-300 p-2.5">
+        <p className="mb-1 border-b border-slate-200 pb-1 text-[10px] font-extrabold text-slate-700">شرح پذیرش</p>
+        <div className="grid gap-1 text-[10px]">
           <Row k="عیب به اظهار مشتری" v={d.problem} />
+          <Row k="لوازم همراه" v={d.accessories || "—"} />
+          <Row k="رمز عبور دستگاه" v={d.devicePassword || "—"} />
         </div>
-        <Row k="کارشناس تعمیر" v={d.repairTechName || "—"} />
-        <Row k="هزینه تخمینی" v={formatMoney(d.estimatedCost)} />
-        {Number(d.deposit) > 0 && <Row k="پیش‌پرداخت / بیعانه" v={formatMoney(d.deposit)} />}
-        {d.deadlineDate && <Row k="تاریخ تخمینی تحویل دستگاه" v={formatShortDate(d.deadlineDate)} />}
       </div>
-
       {d.customerAddress && (
-        <div className="mt-1.5 text-[12px]"><span className="text-slate-500">آدرس: </span>{d.customerAddress}</div>
+        <div className="mt-2 rounded-lg border border-slate-300 px-2.5 py-1.5 text-[10px]"><span className="text-slate-500">آدرس: </span>{d.customerAddress}</div>
       )}
+      <div className="mt-2 overflow-hidden rounded-lg border border-slate-300">
+        <p className="border-b border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-extrabold text-slate-700">خلاصه مالی</p>
+        <table className="w-full text-[10px]"><tbody>
+          <tr><td className="border-b border-slate-100 px-2.5 py-1">هزینه تخمینی تعمیر</td><td className="border-b border-slate-100 px-2.5 py-1 text-left font-mono">{formatMoney(d.estimatedCost)}</td></tr>
+          <tr><td className="border-b border-slate-100 px-2.5 py-1">پیش‌پرداخت / بیعانه</td><td className="border-b border-slate-100 px-2.5 py-1 text-left font-mono">{formatMoney(d.deposit || 0)}</td></tr>
+          <tr className="font-extrabold"><td className="px-2.5 py-1">مبلغ نهایی قابل پرداخت</td><td className="px-2.5 py-1 text-left font-mono">{formatMoney(d.finalCost || d.estimatedCost || 0)}</td></tr>
+        </tbody></table>
+      </div>
 
       {/* barcode */}
-      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+      <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-2">
         <div className="flex items-center">
           <TicketBarcode value={d.ticketNumber} height={32} />
         </div>
-        <div className="max-w-xs text-[10px] text-slate-500 leading-relaxed">
+        <div className="max-w-sm text-[9px] text-slate-500 leading-tight">
           {cfg.receiptFooterTerms ||
             "این رسید جهت تحویل دستگاه ارائه شود. تجهیزات امانی تا ۳۰ روز پس از اتمام تعمیر نگهداری شده و مرکز مسئولیتی در قبال اطلاعات شخصی روی حافظه دستگاه ندارد."}
         </div>
       </div>
 
       {/* signatures */}
-      <div className="mt-6 flex items-end justify-between text-[11px] text-slate-600">
+      <div className="mt-2 flex items-end justify-start text-[10px] text-slate-600">
         <div className="w-40 border-t border-slate-500 pt-1 text-center">امضا و اثر انگشت مشتری</div>
 
       </div>
