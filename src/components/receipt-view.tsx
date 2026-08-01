@@ -58,6 +58,7 @@ export function ReceiptView({ copyLabel, d, cfg, company }: { copyLabel: string;
         {d.warrantyStatus && <Row k="وضعیت گارانتی" v={WARRANTY_STATUS_LABELS[d.warrantyStatus] || "—"} />}
         <Row k="متعلقات" v={d.accessories || "—"} />
         <Row k="وضعیت" v={STATUS_LABELS[d.status] || d.status} />
+        <Row k="نوع تحویل" v={d.deliveryType === "shipping" ? "ارسالی" : "حضوری"} />
         <div className="col-span-2">
           <Row k="شرح مشکل" v={d.problem} />
         </div>
