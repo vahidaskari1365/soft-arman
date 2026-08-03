@@ -281,7 +281,7 @@ export default function NewDevicePage() {
         </Card>
 
         <Card>
-          <CardHeader title="گارانتی، زمان تحویل (SLA) و امور مالی پذیرش" subtitle="شرایط مالی، بیعانه و تعیین مهلت تحویل" />
+          <CardHeader title="گارانتی، زمان تحویل (TAT) و امور مالی پذیرش" subtitle="شرایط مالی، بیعانه و تعیین مهلت تحویل" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="وضعیت گارانتی در زمان پذیرش">
               <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm text-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
