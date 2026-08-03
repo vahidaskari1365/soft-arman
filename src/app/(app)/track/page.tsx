@@ -7,15 +7,13 @@ import { Search, Radar } from "lucide-react";
 
 function TrackInner() {
   const searchParams = useSearchParams();
-  const initialId = searchParams.get("id");
-  const [deviceId, setDeviceId] = useState<number | null>(
-    initialId && !isNaN(Number(initialId)) ? Number(initialId) : null
-  );
-  const [input, setInput] = useState(initialId && !isNaN(Number(initialId)) ? initialId : "");
+  const initialSerial = (searchParams.get("id") || "").trim();
+  const [serial, setSerial] = useState<string | null>(initialSerial || null);
+  const [input, setInput] = useState(initialSerial);
 
   const handleTrack = () => {
-    const id = parseInt(input.trim());
-    if (!isNaN(id) && id > 0) setDeviceId(id);
+    const value = input.trim();
+    if (value) setSerial(value);
   };
 
   return (
@@ -25,15 +23,14 @@ function TrackInner() {
           <Radar className="h-6 w-6 text-sky-600" /> پیگیری آنلاین وضعیت دستگاه
         </h1>
         <p className="mt-1 text-xs text-slate-500">
-          برای مشاهده لحظه‌ای وضعیت ۵ مرحله‌ای دستگاه، شماره (ID) دستگاه را وارد کنید.
+          برای مشاهده لحظه‌ای وضعیت ۵ مرحله‌ای دستگاه، شماره سریال دستگاه را وارد کنید.
         </p>
       </div>
 
       <div className="mb-8 flex gap-2">
         <input
           type="text"
-          inputMode="numeric"
-          placeholder="شماره دستگاه (ID)"
+          placeholder="شماره سریال / IMEI دستگاه"
           className="flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:bg-slate-900/60 dark:text-slate-100"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -47,13 +44,13 @@ function TrackInner() {
         </button>
       </div>
 
-      {deviceId ? (
-        <DeviceTracker key={deviceId} deviceId={deviceId} />
+      {serial ? (
+        <DeviceTracker key={serial} serial={serial} />
       ) : (
         <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-12 text-center">
           <Radar className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
           <p className="mt-3 text-sm font-semibold text-slate-500">هنوز دستگاهی برای پیگیری انتخاب نشده است.</p>
-          <p className="mt-1 text-xs text-slate-400">شماره دستگاه را وارد کرده و دکمه «پیگیری» را بزنید.</p>
+          <p className="mt-1 text-xs text-slate-400">شماره سریال دستگاه را وارد کرده و دکمه «پیگیری» را بزنید.</p>
         </div>
       )}
     </div>

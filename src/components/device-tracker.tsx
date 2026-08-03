@@ -31,14 +31,14 @@ const STATUS_TO_STAGE: Record<string, number> = {
   closed: 4,
 };
 
-export default function DeviceTracker({ deviceId }: { deviceId: number }) {
+export default function DeviceTracker({ serial }: { serial: string }) {
   const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let alive = true;
-    fetch(`/api/devices/${deviceId}/status`)
+    fetch(`/api/devices/${encodeURIComponent(serial)}/status`)
       .then(async (r) => {
         if (!r.ok) {
           const d = await r.json().catch(() => ({}));
@@ -54,7 +54,7 @@ export default function DeviceTracker({ deviceId }: { deviceId: number }) {
     return () => {
       alive = false;
     };
-  }, [deviceId]);
+  }, [serial]);
 
   if (loading) {
     return (
@@ -70,7 +70,7 @@ export default function DeviceTracker({ deviceId }: { deviceId: number }) {
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center dark:border-rose-900/50 dark:bg-rose-950/30">
         <XCircle className="mx-auto h-8 w-8 text-rose-500" />
         <p className="mt-2 text-sm font-bold text-rose-700 dark:text-rose-300">{error}</p>
-        <p className="mt-1 text-xs text-rose-500/80">لطفاً شماره دستگاه را بررسی کنید.</p>
+        <p className="mt-1 text-xs text-rose-500/80">لطفاً شماره سریال دستگاه را بررسی کنید.</p>
       </div>
     );
   }
@@ -81,6 +81,7 @@ export default function DeviceTracker({ deviceId }: { deviceId: number }) {
 
   const stageMeta = [
     { label: "شماره رسید", value: data?.ticketNumber ? toFa(data.ticketNumber) : "—" },
+    { label: "شماره سریال / IMEI", value: data?.serialNumber ? toFa(data.serialNumber) : "—" },
     { label: "نام مشتری", value: data?.customerName || "—" },
     { label: "دستگاه", value: [data?.brand, data?.model].filter(Boolean).join(" • ") || data?.deviceType || "—" },
     { label: "تاریخ پذیرش", value: data?.intakeDate ? formatShortDate(data.intakeDate) : "—" },

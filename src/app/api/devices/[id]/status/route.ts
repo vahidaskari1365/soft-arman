@@ -8,10 +8,23 @@ import { requireUser } from "@/lib/auth";
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireUser();
   const { id } = await params;
-  const deviceId = Number(id);
-  if (!Number.isFinite(deviceId)) {
-    return NextResponse.json({ error: "شناسه نامعتبر" }, { status: 400 });
+  const query = String(id ?? "").trim();
+  if (!query) {
+    return NextResponse.json({ error: "شماره سریال نامعتبر" }, { status: 400 });
   }
+
+  // lookup by serial number (preferred), fallback to numeric device id
+  const numericId = /^\d+$/.test(query) ? Number(query) : null;
+  let match = await db
+    .select({ id: devices.id })
+    .from(devices)
+    .where(eq(devices.serialNumber, query))
+    .limit(1);
+  if (!match[0] && numericId !== null) {
+    match = await db.select({ id: devices.id }).from(devices).where(eq(devices.id, numericId)).limit(1);
+  }
+  if (!match[0]) return NextResponse.json({ error: "دستگاه یافت نشد" }, { status: 404 });
+  const deviceId = match[0].id;
 
   const rows = await db
     .select({
@@ -20,6 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       brand: devices.brand,
       model: devices.model,
       deviceType: devices.deviceType,
+      serialNumber: devices.serialNumber,
       status: devices.status,
       customerName: customers.name,
       customerPhone: customers.phone,
