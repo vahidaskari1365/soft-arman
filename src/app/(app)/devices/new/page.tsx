@@ -253,16 +253,7 @@ export default function NewDevicePage() {
               </Select>
             </Field>
             <Field label="مدل دستگاه" required>
-              {form.brand && PHONE_BRANDS[form.brand] ? (
-                <Select value={form.model} onChange={(e) => set("model", e.target.value)} required>
-                  <option value="">انتخاب مدل</option>
-                  {PHONE_BRANDS[form.brand].map((model) => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
-                </Select>
-              ) : (
-                <Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="مدل دستگاه" required />
-              )}
+              <Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="مدل دستگاه" required />
             </Field>
             <Field label="شماره سریال / IMEI" hint="جهت جلوگیری از تشابه دستگاه و پیگیری‌های حقوقی">
               <Input
