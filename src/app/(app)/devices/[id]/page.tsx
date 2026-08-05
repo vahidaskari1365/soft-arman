@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinner } from "@/components/ui";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, formatNumber, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
+import { toFa, toEn, formatNumber, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
 import {
   ArrowRight,
   Printer,
@@ -353,6 +353,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
             isClosed={isClosed}
             busy={busy}
             action={action}
+            setError={setError}
           />
 
           {/* Accounting summary */}
@@ -423,17 +424,11 @@ function WorkflowPanel({
   isClosed,
   busy,
   action,
+  setError,
 }: any) {
   const [partsMode, setPartsMode] = useState<"none" | "yes" | "">("");
   const [invItems, setInvItems] = useState<any[]>([]);
-  const [partForm, setPartForm] = useState({
-    partName: "",
-    partModel: "",
-    partPrice: "",
-    supplier: "",
-    notes: "",
-    inventoryItemId: "",
-  });
+  const [partsList, setPartsList] = useState<{ id: number; partName: string; partModel: string; partPrice: string; supplier: string; notes: string; inventoryItemId: string }[]>([]);
   const [opsForm, setOpsForm] = useState({ operationsDone: "", repairNotes: "", finalCost: d.estimatedCost || "" });
 
   // Delivery / Accounting forms
@@ -467,21 +462,62 @@ function WorkflowPanel({
     }
   }, [partsMode]);
 
-  const selectInventoryItem = (itemId: string) => {
+  const selectInventoryItem = (partId: number, itemId: string) => {
     const item = invItems.find((x) => String(x.id) === String(itemId));
-    if (item) {
-      setPartForm({
-        partName: item.name,
-        partModel: item.partModel || "",
-        partPrice: String(item.sellPrice || item.buyPrice || 0),
-        supplier: item.supplier || "",
-        notes: `کد انبار: ${item.sku || item.id}`,
-        inventoryItemId: String(item.id),
-      });
-    } else {
-      setPartForm({ ...partForm, inventoryItemId: "" });
-    }
+    setPartsList((prev) =>
+      prev.map((p) => {
+        if (p.id !== partId) return p;
+        if (item) {
+          return {
+            ...p,
+            partName: item.name,
+            partModel: item.partModel || "",
+            partPrice: String(item.sellPrice || item.buyPrice || 0),
+            supplier: item.supplier || "",
+            notes: `کد انبار: ${item.sku || item.id}`,
+            inventoryItemId: String(item.id),
+          };
+        }
+        return { ...p, inventoryItemId: "" };
+      })
+    );
   };
+
+  function addPart() {
+    setPartsList((prev) => [
+      ...prev,
+      { id: Date.now(), partName: "", partModel: "", partPrice: "", supplier: "", notes: "", inventoryItemId: "" },
+    ]);
+  }
+
+  function removePart(id: number) {
+    setPartsList((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  function updatePart(id: number, field: string, value: string) {
+    setPartsList((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+  }
+
+  async function submitParts() {
+    const validParts = partsList.filter((p) => p.partName.trim());
+    if (validParts.length === 0) {
+      setError("حداقل یک قطعه وارد کنید");
+      return;
+    }
+    await action("parts", async () => {
+      for (const part of validParts) {
+        await api(`/api/devices/${d.id}/parts`, "POST", {
+          needsParts: true,
+          partName: part.partName,
+          partModel: part.partModel,
+          partPrice: part.partPrice,
+          supplier: part.supplier,
+          notes: part.notes,
+          inventoryItemId: part.inventoryItemId || undefined,
+        });
+      }
+    });
+  }
 
   // nothing actionable
   if (isClosed)
@@ -497,7 +533,7 @@ function WorkflowPanel({
       <Card className="p-5 text-center">
         <Clock className="mx-auto mb-2 h-8 w-8 text-amber-500 animate-pulse-soft" />
         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">در انتظار تایید خرید قطعه</p>
-        <p className="mt-1 text-xs text-slate-400">پس از تایید مدیر خدمات، عملیات تعمیر باز می‌شود.</p>
+        <p className="mt-1 text-xs text-slate-400">پس از تایید کارشناس حسابداری، عملیات تعمیر باز می‌شود.</p>
       </Card>
     );
 
@@ -514,7 +550,7 @@ function WorkflowPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setPartsMode("yes")}
+              onClick={() => { setPartsMode("yes"); if (partsList.length === 0) addPart(); }}
               className={classNames(
                 "cursor-pointer rounded-xl border p-3 text-center text-xs font-semibold transition-colors",
                 partsMode === "yes"
@@ -526,7 +562,7 @@ function WorkflowPanel({
             </button>
             <button
               type="button"
-              onClick={() => setPartsMode("none")}
+              onClick={() => { setPartsMode("none"); setPartsList([]); }}
               className={classNames(
                 "cursor-pointer rounded-xl border p-3 text-center text-xs font-semibold transition-colors",
                 partsMode === "none"
@@ -549,12 +585,12 @@ function WorkflowPanel({
           )}
 
           {partsMode === "yes" && (
-            <div className="space-y-2 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/40">
-              {invItems.length > 0 && (
-                <Field label="انتخاب سریع از موجودی انبار">
+            <div className="space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/40">
+              {invItems.length > 0 && partsList.length > 0 && (
+                <Field label="انتخاب سریع از موجودی انبار (برای قطعه آخر)">
                   <Select
-                    value={partForm.inventoryItemId}
-                    onChange={(e) => selectInventoryItem(e.target.value)}
+                    value={partsList[partsList.length - 1]?.inventoryItemId || ""}
+                    onChange={(e) => selectInventoryItem(partsList[partsList.length - 1].id, e.target.value)}
                     className="text-xs"
                   >
                     <option value="">— ورود دستی قطعه (خارج از انبار) —</option>
@@ -567,35 +603,71 @@ function WorkflowPanel({
                 </Field>
               )}
 
-              <Field label="نام قطعه *" required>
-                <Input
-                  value={partForm.partName}
-                  onChange={(e) => setPartForm({ ...partForm, partName: e.target.value })}
-                  placeholder="مثلاً صفحه نمایش آیفون 13"
-                />
-              </Field>
-              <Field label="مدل / کد قطعه">
-                <Input value={partForm.partModel} onChange={(e) => setPartForm({ ...partForm, partModel: e.target.value })} />
-              </Field>
-              <Field label="قیمت قطعه (تومان) *" required>
-                <Input
-                  value={partForm.partPrice}
-                  onChange={(e) => setPartForm({ ...partForm, partPrice: toFa(e.target.value) })}
-                  inputMode="numeric"
-                />
-              </Field>
-              <Field label="تامین‌کننده">
-                <Input value={partForm.supplier} onChange={(e) => setPartForm({ ...partForm, supplier: e.target.value })} />
-              </Field>
+              {partsList.map((part, idx) => (
+                <div key={part.id} className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/60">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">قطعه {idx + 1}</span>
+                    {partsList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePart(part.id)}
+                        className="cursor-pointer rounded p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Field label="نام قطعه *">
+                      <Input
+                        value={part.partName}
+                        onChange={(e) => updatePart(part.id, "partName", e.target.value)}
+                        placeholder="مثلاً صفحه نمایش آیفون 13"
+                        className="text-xs"
+                      />
+                    </Field>
+                    <Field label="مدل / کد قطعه">
+                      <Input
+                        value={part.partModel}
+                        onChange={(e) => updatePart(part.id, "partModel", e.target.value)}
+                        className="text-xs"
+                      />
+                    </Field>
+                    <Field label="قیمت قطعه (تومان) *">
+                      <Input
+                        value={toFa(part.partPrice)}
+                        onChange={(e) => updatePart(part.id, "partPrice", toEn(e.target.value).replace(/[^0-9]/g, ""))}
+                        inputMode="numeric"
+                        className="text-xs font-mono"
+                      />
+                    </Field>
+                    <Field label="تامین‌کننده">
+                      <Input
+                        value={part.supplier}
+                        onChange={(e) => updatePart(part.id, "supplier", e.target.value)}
+                        className="text-xs"
+                      />
+                    </Field>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addPart}
+                className="flex w-full cursor-pointer items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 p-2 text-xs font-semibold text-slate-500 hover:border-sky-400 hover:text-sky-600 transition-colors dark:border-slate-600 dark:hover:border-sky-500"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                افزودن قطعه دیگر
+              </button>
+
               <p className="text-[11px] text-slate-400">
-                در صورت انتخاب از انبار، پس از تایید توسط مدیر خدمات، موجودی قطعه خودکار کسر می‌شود.
+                در صورت انتخاب از انبار، پس از تایید توسط کارشناس حسابداری، موجودی قطعه خودکار کسر می‌شود.
               </p>
               <Button
                 className="w-full"
                 loading={busy === "parts"}
-                onClick={() =>
-                  action("parts", () => api(`/api/devices/${d.id}/parts`, "POST", { needsParts: true, ...partForm }))
-                }
+                onClick={submitParts}
               >
                 <AlertTriangle className="h-4 w-4" /> ارسال برای تایید خرید قطعه
               </Button>
