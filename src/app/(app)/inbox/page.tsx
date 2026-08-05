@@ -18,7 +18,7 @@ export default function InboxPage() {
       let url = "/api/devices?limit=100";
       if (me.user?.role === "repair_technician") url = "/api/devices?scope=repair&limit=100";
       else if (me.user?.role === "intake_technician") url = "/api/devices?scope=intake&limit=100";
-      else if (me.user?.role === "service_manager" || me.user?.role === "super_admin") url = "/api/devices?status=awaiting_parts&limit=100";
+      else if (me.user?.role === "service_manager" || me.user?.role === "super_admin" || me.user?.role === "accountant") url = "/api/devices?status=awaiting_parts&limit=100";
       const d = await fetch(url).then((r) => r.json());
       setItems(d.items || []);
       setLoading(false);
