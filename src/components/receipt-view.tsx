@@ -21,15 +21,15 @@ export function ReceiptView({ copyLabel, d, cfg, company, currentUserName }: { c
 
   return (
     <div>
-      <style>{`@page { size: A5 landscape; margin: 8mm; }
-        .print-area { width: 210mm; }
+      <style>{`@page { size: A5 landscape; margin: 5mm; }
+        .print-area { width: 200mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .receipt-header-logo { height: 30px; width: 30px; }
         .receipt-company { font-size: 12px; }
         .receipt-sub { font-size: 9px; }
         @media print { .no-print { display: none !important; } }
       `}</style>
 
-      <div className="print-area mb-4 break-after-page border-2 border-slate-800 bg-white p-3 text-slate-900" style={{ width: "210mm" }}>
+      <div className="print-area mb-4 break-after-page border-2 border-slate-800 bg-white p-3 text-slate-900" style={{ width: "200mm" }}>
         {/* header — compact */}
         <div className="flex items-center justify-between border-b-2 border-slate-800 pb-1.5">
           <div className="flex items-center gap-2">
@@ -42,7 +42,6 @@ export function ReceiptView({ copyLabel, d, cfg, company, currentUserName }: { c
             <div>
               <h1 className="receipt-company leading-tight font-extrabold">{company}</h1>
               <p className="receipt-sub leading-tight text-slate-600">{cfg.tagline || "سامانه مدیریت تعمیرات و قطعات"}</p>
-              <p className="mt-0.5 text-[9px] font-bold leading-tight text-slate-700">تلفن: 0938 - 2494101 و 0930 - 5068332</p>
             </div>
           </div>
           <div className="text-center">
@@ -75,16 +74,16 @@ export function ReceiptView({ copyLabel, d, cfg, company, currentUserName }: { c
         <div className="mt-2 rounded-lg border border-slate-300 p-2">
           <p className="mb-1 border-b border-slate-200 pb-1 text-[10px] font-extrabold text-slate-700">شرح پذیرش</p>
           <div className="grid grid-cols-3 gap-2 text-[10px]">
-            <div className="col-span-2">
+            <div className="col-span-2 border-l border-slate-200 pl-2">
+              <div className="mb-1 text-[10px] font-extrabold text-slate-700">توضیحات</div>
+              <div className="text-[10px] text-slate-700">{d.notes || d.description || d.intakeNote || "—"}</div>
+            </div>
+            <div className="col-span-1">
               <div className="grid gap-1">
                 <Row k="عیب به اظهار مشتری" v={d.problem || "—"} />
                 <Row k="لوازم همراه" v={d.accessories || "—"} />
                 {/* removed device password as requested */}
               </div>
-            </div>
-            <div className="col-span-1 border-r border-slate-200 pr-2">
-              <div className="mb-1 text-[10px] font-extrabold text-slate-700">توضیحات</div>
-              <div className="text-[10px] text-slate-700">{d.notes || d.description || d.intakeNote || "—"}</div>
             </div>
           </div>
         </div>
