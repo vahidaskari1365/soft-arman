@@ -10,15 +10,18 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const [d, setD] = useState<any>(null);
   const [cfg, setCfg] = useState<any>({});
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/devices/${id}`).then((r) => r.json()),
       fetch("/api/settings").then((r) => r.json()),
-    ]).then(([dev, c]) => {
+      fetch("/api/auth/me").then((r) => r.json()),
+    ]).then(([dev, c, me]) => {
       setD(dev);
       setCfg(c);
+      setUser(me?.user ?? null);
       setLoading(false);
     });
   }, [id]);
@@ -57,8 +60,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
           </Button>
         </div>
       </div>
-      <ReceiptView copyLabel="نسخه مشتری" d={d} cfg={cfg} company={company} />
-      <ReceiptView copyLabel="نسخه مرکز" d={d} cfg={cfg} company={company} />
+      <ReceiptView copyLabel="نسخه مشتری" d={d} cfg={cfg} company={company} currentUserName={user?.fullName} />
+      <ReceiptView copyLabel="نسخه مرکز" d={d} cfg={cfg} company={company} currentUserName={user?.fullName} />
     </div>
   );
 }
