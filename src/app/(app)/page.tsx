@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const statusCounts: Record<string, number> = data.statusCounts || {};
   const donutData = Object.entries(STATUS_LABELS)
     .filter(([k]) => statusCounts[k])
-    .map(([k, v]) => ({ name: v, value: statusCounts[k] }));
+    .map(([k, v]) => ({ key: k, name: v, value: statusCounts[k] }));
 
   const isRepair = data.role === "repair_technician";
   const isIntake = data.role === "intake_technician";

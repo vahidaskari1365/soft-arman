@@ -18,25 +18,54 @@ import {
 
 export const CHART_COLORS = ["#0284c7", "#7c3aed", "#0d9488", "#d97706", "#dc2626", "#2563eb", "#9333ea", "#16a34a", "#64748b", "#db2777"];
 
-export function StatusDonut({ data }: { data: { name: string; value: number }[] }) {
+// وضعیت دستگاه → رنگ (سبز = تحویل، قرمز = لغو، بقیه طبق مراحل کار)
+export const STATUS_COLORS: Record<string, string> = {
+  registered: "#0ea5e9",
+  assigned: "#6366f1",
+  awaiting_parts: "#f59e0b",
+  parts_approved: "#8b5cf6",
+  in_progress: "#f97316",
+  repair_done: "#06b6d4",
+  delivered: "#16a34a",
+  closed: "#047857",
+  cancelled: "#dc2626",
+};
+export function StatusDonut({ data }: { data: { key?: string; name: string; value: number }[] }) {
   const filtered = data.filter((d) => d.value > 0);
   if (filtered.length === 0)
     return <div className="grid h-56 place-items-center text-xs text-slate-400">داده‌ای موجود نیست</div>;
+  const go = (key?: string) => {
+    if (key) window.location.href = `/devices?status=${key}`;
+  };
   return (
-    <ResponsiveContainer width="100%" height={224}>
-      <PieChart>
-        <Pie data={filtered} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2}>
-          {filtered.map((_, i) => (
-            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{ borderRadius: 12, border: "none", fontFamily: "Vazirmatn", fontSize: 12 }}
-          formatter={(v: any) => [`${Number(v).toLocaleString("fa-IR")} عدد`, "تعداد"]}
-        />
-        <Legend wrapperStyle={{ fontFamily: "Vazirmatn", fontSize: 11 }} />
-      </PieChart>
-    </ResponsiveContainer>
+    <>
+      <ResponsiveContainer width="100%" height={210}>
+        <PieChart>
+          <Pie
+            data={filtered}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius={52}
+            outerRadius={82}
+            paddingAngle={2}
+            className="cursor-pointer"
+            onClick={(entry: any) => go(entry?.payload?.key)}
+          >
+            {filtered.map((d) => (
+              <Cell key={d.key || d.name} fill={STATUS_COLORS[d.key || ""] || "#64748b"} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{ borderRadius: 12, border: "none", fontFamily: "Vazirmatn", fontSize: 12 }}
+            formatter={(v: any) => [`${Number(v).toLocaleString("fa-IR")} عدد`, "تعداد"]}
+          />
+          <Legend wrapperStyle={{ fontFamily: "Vazirmatn", fontSize: 11 }} />
+        </PieChart>
+      </ResponsiveContainer>
+      <p className="mt-1 text-center text-[11px] text-slate-400">برای مشاهده دستگاه‌های هر وضعیت، روی همان بخش کلیک کنید</p>
+    </>
   );
 }
 

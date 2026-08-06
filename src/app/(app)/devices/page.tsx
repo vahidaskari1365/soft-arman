@@ -14,7 +14,9 @@ export default function DevicesListPage() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState<string>(() =>
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("status") || "all" : "all"
+  );
   const [repairId, setRepairId] = useState("all");
   const [deviceType, setDeviceType] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
