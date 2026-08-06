@@ -74,13 +74,13 @@ export async function GET() {
       GROUP BY u.id, u.full_name ORDER BY delivered DESC, total DESC
     `).then((r: any) => r.rows ?? r);
 
-    // financials — unified rule (same as /api/reports): received = collected amount, else final/estimated cost;
+    // financials — unified rule (same as /api/reports): received = first NON-ZERO of (collected, final, estimated cost);
     // partCost = sum of APPROVED parts only; profit = received − partCost; pending = unsettled records. Cancelled excluded.
     const fin: any = await db.execute(sql`
       SELECT
-        COALESCE(SUM(COALESCE(ar.received_amount, d.final_cost, d.estimated_cost, 0)),0)::float8 as received,
+        COALESCE(SUM(COALESCE(NULLIF(ar.received_amount,0), NULLIF(d.final_cost,0), NULLIF(d.estimated_cost,0), 0)),0)::float8 as received,
         COALESCE(SUM(COALESCE(pc.cost,0)),0)::float8 as part_cost,
-        COALESCE(SUM(COALESCE(ar.received_amount, d.final_cost, d.estimated_cost, 0)) - SUM(COALESCE(pc.cost,0)),0)::float8 as profit,
+        COALESCE(SUM(COALESCE(NULLIF(ar.received_amount,0), NULLIF(d.final_cost,0), NULLIF(d.estimated_cost,0), 0)) - SUM(COALESCE(pc.cost,0)),0)::float8 as profit,
         count(*) FILTER (WHERE ar.id IS NOT NULL AND ar.status = 'pending')::int as pending
       FROM ${devices} d
       LEFT JOIN ${accountingRecords} ar ON ar.device_id = d.id
