@@ -104,7 +104,7 @@ textarea {
 @media print {
   @page {
     size: A5 landscape;
-    margin: 4mm;
+    margin: 5mm;
   }
   body * {
     visibility: hidden;
@@ -119,10 +119,15 @@ textarea {
     right: 0;
     top: 0;
     box-sizing: border-box;
-    width: 100%;
-    max-height: 138mm;
-    overflow: hidden;
     page-break-after: always;
+  }
+  /* Receipt is a fixed A5 landscape box (200 x 138mm = A5 minus 5mm margins) */
+  .print-area.receipt-a5 {
+    width: 200mm;
+    height: 138mm;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .print-area:last-child {
     page-break-after: auto;
