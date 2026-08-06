@@ -57,7 +57,7 @@ export default function ReportsPage() {
       "هزینه تخمینی": Number(d.estimatedCost || 0),
       "هزینه قطعه": Number(d.partCost || 0),
       "مبلغ دریافتی": Number(d.receivedAmount || 0),
-      "سود خالص": Number(d.profit || 0) || Number(d.receivedAmount || 0) - Number(d.partCost || 0),
+      "سود خالص": Number(d.profit || 0),
       "وضعیت": STATUS_LABELS[d.status] || d.status,
     }));
     exportToExcel(rows, `گزارش-خدمات-${formatDate(new Date())}`, "گزارش");
@@ -159,7 +159,7 @@ export default function ReportsPage() {
                     <td className="p-2.5 text-slate-500">{d.intakeDate ? formatDate(d.intakeDate) : "—"}</td>
                     <td className="p-2.5 text-amber-600">{Number(d.partCost) ? formatMoney(d.partCost) : "—"}</td>
                     <td className="p-2.5 text-emerald-600">{Number(d.receivedAmount) ? formatMoney(d.receivedAmount) : "—"}</td>
-                    <td className="p-2.5 font-bold text-violet-600">{(Number(d.profit) || (Number(d.receivedAmount) - Number(d.partCost))) ? formatMoney(Number(d.profit) || (Number(d.receivedAmount) - Number(d.partCost))) : "—"}</td>
+                    <td className="p-2.5 font-bold text-violet-600">{Number(d.profit) ? formatMoney(d.profit) : "—"}</td>
                     <td className="p-2.5"><Badge className={classNames(statusColor(d.status))}>{STATUS_LABELS[d.status]}</Badge></td>
                   </tr>
                 ))}

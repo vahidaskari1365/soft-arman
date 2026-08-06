@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { devices, accountingRecords, partRequests } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { getDeviceDetail, logDeviceAction } from "@/lib/queries";
 import { notifyRoles } from "@/lib/notify";
@@ -21,11 +21,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json().catch(() => ({}));
   const receivedAmount = Number(body.receivedAmount ?? device.finalCost ?? device.estimatedCost ?? 0);
 
-  // total approved parts cost
+  // total APPROVED parts cost (rejected ones are not counted)
   const parts = await db
     .select({ price: partRequests.partPrice })
     .from(partRequests)
-    .where(eq(partRequests.deviceId, deviceId));
+    .where(and(eq(partRequests.deviceId, deviceId), eq(partRequests.status, "approved")));
   const partCost = parts.reduce((s, p) => s + Number(p.price || 0), 0);
   const profit = receivedAmount - partCost;
 

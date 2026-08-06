@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices, users, accountingRecords } from "@/db/schema";
+import { devices, users, accountingRecords, partRequests } from "@/db/schema";
 import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 
@@ -74,16 +74,20 @@ export async function GET() {
       GROUP BY u.id, u.full_name ORDER BY delivered DESC, total DESC
     `).then((r: any) => r.rows ?? r);
 
-    // financials
+    // financials — unified rule (same as /api/reports): received = collected amount, else final/estimated cost;
+    // partCost = sum of APPROVED parts only; profit = received − partCost; pending = unsettled records. Cancelled excluded.
     const fin: any = await db.execute(sql`
       SELECT
-        COALESCE(SUM(received_amount),0)::float8 as received,
-        COALESCE(SUM(part_cost),0)::float8 as part_cost,
-        COALESCE(SUM(profit),0)::float8 as profit,
-        count(*)::int as records,
-        count(*) FILTER (WHERE status='pending')::int as pending
-      FROM ${accountingRecords}
-      WHERE status <> 'cancelled'
+        COALESCE(SUM(COALESCE(ar.received_amount, d.final_cost, d.estimated_cost, 0)),0)::float8 as received,
+        COALESCE(SUM(COALESCE(pc.cost,0)),0)::float8 as part_cost,
+        COALESCE(SUM(COALESCE(ar.received_amount, d.final_cost, d.estimated_cost, 0)) - SUM(COALESCE(pc.cost,0)),0)::float8 as profit,
+        count(*) FILTER (WHERE ar.id IS NOT NULL AND ar.status = 'pending')::int as pending
+      FROM ${devices} d
+      LEFT JOIN ${accountingRecords} ar ON ar.device_id = d.id
+      LEFT JOIN (
+        SELECT device_id, SUM(part_price)::float8 as cost FROM ${partRequests} WHERE status = 'approved' GROUP BY device_id
+      ) pc ON pc.device_id = d.id
+      WHERE d.status <> 'cancelled'
     `).then((r: any) => (r.rows ?? r)[0] ?? {});
 
     result.financials = {

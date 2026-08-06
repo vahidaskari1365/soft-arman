@@ -72,17 +72,22 @@ export async function GET(req: NextRequest) {
     .where(and(...conds))
     .orderBy(sql`${devices.intakeDate} DESC`);
 
-  const summary = rows.reduce(
+  // unified financial rule: received = collected amount, else final/estimated cost; profit = received − approved-parts cost
+  const items = rows.map((r) => {
+    const received = Number(r.receivedAmount || 0) || Number(r.finalCost || 0) || Number(r.estimatedCost || 0);
+    return { ...r, receivedAmount: String(received), profit: String(received - Number(r.partCost || 0)) };
+  });
+  const summary = items.reduce(
     (acc, r) => {
       if (r.status === "cancelled" || r.accStatus === "cancelled") return acc;
       acc.count += 1;
       acc.partCost += Number(r.partCost || 0);
       acc.received += Number(r.receivedAmount || 0);
-      acc.profit += Number(r.profit || 0) || Number(r.receivedAmount || 0) - Number(r.partCost || 0);
+      acc.profit += Number(r.profit || 0);
       return acc;
     },
     { count: 0, partCost: 0, received: 0, profit: 0 }
   );
 
-  return NextResponse.json({ items: rows, summary });
+  return NextResponse.json({ items, summary });
 }
