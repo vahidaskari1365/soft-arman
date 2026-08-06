@@ -606,7 +606,7 @@ function WorkflowPanel({
 
   // Delivery / Accounting forms
   const [deliverForm, setDeliverForm] = useState({
-    receivedAmount: Number(d.finalCost || 0) || Number(d.estimatedCost || 0) || "0",
+    receivedAmount: String(Number(d.finalCost || 0) || Number(d.estimatedCost || 0) || 0),
     laborCost: "0",
     discount: "0",
     tax: "0",
@@ -615,7 +615,7 @@ function WorkflowPanel({
   });
 
   const [accForm, setAccForm] = useState({
-    receivedAmount: Number(d.accounting?.receivedAmount || 0) || Number(d.finalCost || 0) || Number(d.estimatedCost || 0) || "0",
+    receivedAmount: String(Number(d.accounting?.receivedAmount || 0) || Number(d.finalCost || 0) || Number(d.estimatedCost || 0) || 0),
     partCost: d.accounting?.partCost || "0",
     laborCost: d.accounting?.laborCost || "0",
     discount: d.accounting?.discount || "0",
