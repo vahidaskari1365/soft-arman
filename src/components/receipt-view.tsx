@@ -72,12 +72,12 @@ export function ReceiptView({ copyLabel, d, cfg, company, currentUserName }: { c
         {/* Description and Notes side-by-side */}
         <div className="mt-1.5 rounded-lg border border-slate-300 p-1.5">
           <p className="mb-1 border-b border-slate-200 pb-0.5 text-[9px] font-extrabold text-slate-700">شرح پذیرش</p>
-          <div className="grid grid-cols-3 gap-2 text-[9.5px]">
-            <div className="col-span-2 rounded-lg border border-slate-300 p-1.5">
+          <div className="grid grid-cols-2 gap-2 text-[9.5px]">
+            <div className="rounded-lg border border-slate-300 p-1.5">
               <div className="mb-0.5 text-[9px] font-extrabold text-slate-700">توضیحات</div>
               <div className="text-[9.5px] leading-snug text-slate-700">{intakeNotes || "—"}</div>
             </div>
-            <div className="col-span-1 rounded-lg border border-slate-300 p-1.5">
+            <div className="rounded-lg border border-slate-300 p-1.5">
               <div className="grid gap-0.5">
                 <Row k="عیب به اظهار مشتری" v={d.problem || "—"} />
                 <Row k="لوازم همراه" v={d.accessories || "—"} />
