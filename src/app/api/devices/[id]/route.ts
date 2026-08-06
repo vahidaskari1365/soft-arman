@@ -38,6 +38,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     "deadlineDate",
     "deposit",
     "deliveryType",
+    "repairTechnicianId",
   ];
   const patch: Record<string, unknown> = { updatedAt: new Date() };
   for (const k of allowed) {
@@ -48,6 +49,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         patch[k] = Number(body[k]) || 0;
       } else if (k === "estimatedCost" || k === "deposit") {
         patch[k] = String(Number(body[k]) || 0);
+      } else if (k === "repairTechnicianId") {
+        patch[k] = Number(body[k]) || null;
       } else {
         patch[k] = body[k];
       }

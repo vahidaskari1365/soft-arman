@@ -25,9 +25,14 @@ export default function ApprovalsPage() {
   }, []);
 
   async function decide(id: number, action: "approve" | "reject") {
+    let reason: string | undefined;
+    if (action === "reject") {
+      reason = window.prompt("دلیل رد درخواست قطعه (اختیاری):") ?? undefined;
+      if (reason === undefined) return;
+    }
     setBusy(id);
     try {
-      await api(`/api/parts-requests/${id}`, "PATCH", { action });
+      await api(`/api/parts-requests/${id}`, "PATCH", { action, ...(reason ? { reason } : {}) });
       load();
     } catch {
     } finally {

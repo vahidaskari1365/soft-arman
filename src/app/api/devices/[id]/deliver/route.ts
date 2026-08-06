@@ -31,7 +31,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   await db
     .update(devices)
-    .set({ status: "delivered", deliveryDate: new Date(), finalCost: String(receivedAmount), updatedAt: new Date() })
+    .set({
+      status: "delivered",
+      deliveryDate: new Date(),
+      // don't overwrite the repair technician's final cost with the collected amount
+      ...(Number(device.finalCost) > 0 ? {} : { finalCost: String(receivedAmount) }),
+      updatedAt: new Date(),
+    })
     .where(eq(devices.id, deviceId));
 
   await logDeviceAction(deviceId, user.id, "تحویل به مشتری", device.status, "delivered", "دستگاه به مشتری تحویل داده شد.");

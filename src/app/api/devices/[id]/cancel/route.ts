@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices } from "@/db/schema";
+import { devices, accountingRecords } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { getDeviceDetail, logDeviceAction } from "@/lib/queries";
-import { notifyRoles } from "@/lib/notify";
+import { notify, notifyRoles } from "@/lib/notify";
 
 /**
  * Cancel (withdraw) repair: can be triggered by repair or intake technicians.
@@ -32,7 +32,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   await logDeviceAction(deviceId, user.id, "انصراف از تعمیر", device.status, "cancelled", note);
 
-  // notify intake, repair and service manager roles
+  // Refund deposit if the customer had paid one
+  const deposit = Number(device.deposit || 0) || Number(device.accounting?.deposit || 0);
+  if (deposit > 0) {
+    await db
+      .update(accountingRecords)
+      .set({ status: "cancelled", notes: "انصراف از تعمیر — بیعانه به مشتری برگشت داده شد." })
+      .where(eq(accountingRecords.deviceId, deviceId));
+    await logDeviceAction(deviceId, user.id, "برگشت بیعانه", device.status, "cancelled", `بیعانه ${deposit} تومان به مشتری بازگردانده شد.`);
+  }
+
+  // notify only the specific assigned technicians + managers/admin (not the whole role)
   try {
     const msg = {
       type: "repair_cancelled",
@@ -41,10 +51,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       deviceId,
     } as any;
 
-    // notify assigned users first
     const notifyPromises: Promise<any>[] = [];
-    if (device.intakeTechnicianId) notifyPromises.push(notifyRoles(["intake_technician"], msg));
-    if (device.repairTechnicianId) notifyPromises.push(notifyRoles(["repair_technician"], msg));
+    if (device.intakeTechnicianId) notifyPromises.push(notify(device.intakeTechnicianId, msg));
+    if (device.repairTechnicianId) notifyPromises.push(notify(device.repairTechnicianId, msg));
     // always notify service manager and super admin
     notifyPromises.push(notifyRoles(["service_manager", "super_admin"], msg));
 

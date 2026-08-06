@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { devices, deviceLogs, users, customers } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
 
-/** Lightweight public-ish status + timeline used by the DeviceTracker (/track). */
+/** Public device status + timeline for the customer tracker (/track). No auth required. */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  await requireUser();
   const { id } = await params;
   const query = String(id ?? "").trim();
   if (!query) {
@@ -36,7 +34,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       serialNumber: devices.serialNumber,
       status: devices.status,
       customerName: customers.name,
-      customerPhone: customers.phone,
       intakeDate: devices.intakeDate,
       deliveryDate: devices.deliveryDate,
       closedDate: devices.closedDate,

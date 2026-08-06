@@ -22,7 +22,7 @@ export async function GET() {
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(devices)
         .where(
-          sql`${devices.repairTechnicianId} = ${user.id} and ${devices.status} in ('assigned','awaiting_parts','parts_approved','in_progress')`
+          sql`${devices.repairTechnicianId} = ${user.id} and ${devices.status} in ('registered','assigned','awaiting_parts','parts_approved','in_progress')`
         )
     );
   } else if (user.role === "intake_technician") {

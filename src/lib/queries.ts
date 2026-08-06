@@ -23,7 +23,7 @@ export async function listDevices(filters: DeviceFilters = {}) {
 
   if (filters.status && filters.status !== "all") {
     if (filters.status === "active_repair") {
-      conds.push(sql`${devices.status} in ('assigned','awaiting_parts','parts_approved','in_progress')`);
+      conds.push(sql`${devices.status} in ('registered','assigned','awaiting_parts','parts_approved','in_progress')`);
     } else if (filters.status === "open") {
       conds.push(sql`${devices.status} not in ('delivered','closed','cancelled')`);
     } else {
@@ -48,7 +48,7 @@ export async function listDevices(filters: DeviceFilters = {}) {
   // role-based scoping for technicians' inbox
   if (filters.roleScope === "repair") {
     conds.push(eq(devices.repairTechnicianId, filters.mine!));
-    if (!filters.status) conds.push(sql`${devices.status} in ('assigned','awaiting_parts','parts_approved','in_progress')`);
+    if (!filters.status) conds.push(sql`${devices.status} in ('registered','assigned','awaiting_parts','parts_approved','in_progress')`);
   }
   if (filters.roleScope === "intake") {
     conds.push(eq(devices.intakeTechnicianId, filters.mine!));

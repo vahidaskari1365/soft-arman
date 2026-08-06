@@ -33,7 +33,7 @@ export async function GET() {
 
   if (isRepair) {
     result.inHand =
-      (statusCounts["assigned"] || 0) + (statusCounts["awaiting_parts"] || 0) + (statusCounts["parts_approved"] || 0) + (statusCounts["in_progress"] || 0);
+      (statusCounts["registered"] || 0) + (statusCounts["assigned"] || 0) + (statusCounts["awaiting_parts"] || 0) + (statusCounts["parts_approved"] || 0) + (statusCounts["in_progress"] || 0);
     result.awaitingApproval = statusCounts["awaiting_parts"] || 0;
     result.completed = (statusCounts["repair_done"] || 0) + (statusCounts["delivered"] || 0) + (statusCounts["closed"] || 0);
     // my performance by day (last 14 days)
@@ -48,7 +48,7 @@ export async function GET() {
 
   if (isIntake) {
     result.registered = statusCounts["registered"] || 0;
-    result.inRepair = (statusCounts["assigned"] || 0) + (statusCounts["awaiting_parts"] || 0) + (statusCounts["parts_approved"] || 0) + (statusCounts["in_progress"] || 0);
+    result.inRepair = (statusCounts["registered"] || 0) + (statusCounts["assigned"] || 0) + (statusCounts["awaiting_parts"] || 0) + (statusCounts["parts_approved"] || 0) + (statusCounts["in_progress"] || 0);
     result.readyForDelivery = statusCounts["repair_done"] || 0;
     result.delivered = (statusCounts["delivered"] || 0) + (statusCounts["closed"] || 0);
   }
@@ -58,7 +58,7 @@ export async function GET() {
     const techKpis: any[] = await db.execute(sql`
       SELECT u.id, u.full_name as name, u.role,
         count(d.*)::int as total,
-        count(d.*) FILTER (WHERE d.status IN ('assigned','awaiting_parts','parts_approved','in_progress'))::int as in_hand,
+        count(d.*) FILTER (WHERE d.status IN ('registered','assigned','awaiting_parts','parts_approved','in_progress'))::int as in_hand,
         count(d.*) FILTER (WHERE d.status IN ('repair_done','delivered','closed'))::int as done
       FROM ${users} u LEFT JOIN ${devices} d ON d.repair_technician_id = u.id AND u.role = 'repair_technician'
       WHERE u.role = 'repair_technician'
@@ -83,6 +83,7 @@ export async function GET() {
         count(*)::int as records,
         count(*) FILTER (WHERE status='pending')::int as pending
       FROM ${accountingRecords}
+      WHERE status <> 'cancelled'
     `).then((r: any) => (r.rows ?? r)[0] ?? {});
 
     result.financials = {

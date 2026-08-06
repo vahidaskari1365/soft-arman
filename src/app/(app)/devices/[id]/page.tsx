@@ -8,7 +8,7 @@ import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinne
 import ShamsiDatePicker from "@/components/shamsi-date-picker";
 import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS, DEVICE_TYPES, PHONE_BRANDS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
-import { toFa, toEn, formatNumber, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
+import { toFa, toEn, formatNumber, formatMoney, formatMoneyInput, parseMoneyInput, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
 import {
   ArrowRight,
   Printer,
@@ -49,6 +49,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
   const [savingEdit, setSavingEdit] = useState(false);
+  const [techs, setTechs] = useState<any[]>([]);
 
   function setEditField(k: string, v: string) {
     setEditForm((f: any) => ({ ...f, [k]: v }));
@@ -74,6 +75,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
       warrantyDays: String(d?.warrantyDays || "0"),
       deadlineDate: d?.deadlineDate || "",
       deliveryType: d?.deliveryType || "in_person",
+      repairTechnicianId: String(d?.repairTechnicianId || ""),
     });
     setEditOpen(true);
   }
@@ -98,6 +100,10 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
       fetch("/api/auth/me")
         .then((r) => r.json())
         .then((d) => setMe(d.user));
+      fetch("/api/technicians")
+        .then((r) => r.json())
+        .then((res) => setTechs(res.repair || []))
+        .catch(() => {});
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -165,7 +171,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
   const canEdit = role === "intake_technician" || role === "service_manager" || role === "super_admin";
 
   const isAwaitingParts = d.status === "awaiting_parts";
-  const isAssignedToRepair = d.status === "assigned";
+  const isAssignedToRepair = d.status === "assigned" || d.status === "registered";
   const canDoRepairOps = d.status === "in_progress" || d.status === "parts_approved";
   const isRepairDone = d.status === "repair_done";
   const isDelivered = d.status === "delivered";
@@ -521,14 +527,22 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
               <option value="shipping">ارسالی</option>
             </Select>
           </Field>
+          <Field label="کارشناس تعمیر (تغییر ارجاع)">
+            <Select value={editForm.repairTechnicianId || ""} onChange={(e) => setEditField("repairTechnicianId", e.target.value)}>
+              <option value="">— انتخاب کارشناس —</option>
+              {techs.map((t: any) => (
+                <option key={t.id} value={t.id}>{t.fullName}</option>
+              ))}
+            </Select>
+          </Field>
           <Field label="تاریخ تخمینی تحویل دستگاه">
             <ShamsiDatePicker value={editForm.deadlineDate || ""} onChange={(v) => setEditField("deadlineDate", v)} placeholder="۱۴۰۳/۰۵/۱۵" />
           </Field>
           <Field label="هزینه تخمینی تعمیر (تومان)">
-            <Input value={toFa(editForm.estimatedCost || "0")} onChange={(e) => setEditField("estimatedCost", toEn(e.target.value).replace(/[^0-9]/g, ""))} inputMode="numeric" className="font-mono" />
+            <Input value={formatMoneyInput(editForm.estimatedCost || "0")} onChange={(e) => setEditField("estimatedCost", parseMoneyInput(e.target.value))} inputMode="numeric" className="font-mono" />
           </Field>
           <Field label="بیعانه / پیش‌پرداخت (تومان)">
-            <Input value={toFa(editForm.deposit || "0")} onChange={(e) => setEditField("deposit", toEn(e.target.value).replace(/[^0-9]/g, ""))} inputMode="numeric" className="font-mono" />
+            <Input value={formatMoneyInput(editForm.deposit || "0")} onChange={(e) => setEditField("deposit", parseMoneyInput(e.target.value))} inputMode="numeric" className="font-mono" />
           </Field>
         </div>
         <div className="flex justify-end gap-2 border-t border-[var(--color-border)] p-4">
@@ -814,8 +828,8 @@ function WorkflowPanel({
                     </Field>
                     <Field label="قیمت قطعه (تومان) *">
                       <Input
-                        value={toFa(part.partPrice)}
-                        onChange={(e) => updatePart(part.id, "partPrice", toEn(e.target.value).replace(/[^0-9]/g, ""))}
+                        value={formatMoneyInput(part.partPrice)}
+                        onChange={(e) => updatePart(part.id, "partPrice", parseMoneyInput(e.target.value))}
                         inputMode="numeric"
                         className="text-xs font-mono"
                       />
@@ -897,8 +911,8 @@ function WorkflowPanel({
           </p>
           <Field label="مجموع مبلغ دریافتی از مشتری (تومان)">
             <Input
-              value={deliverForm.receivedAmount}
-              onChange={(e) => setDeliverForm({ ...deliverForm, receivedAmount: toFa(e.target.value) })}
+              value={formatMoneyInput(deliverForm.receivedAmount)}
+              onChange={(e) => setDeliverForm({ ...deliverForm, receivedAmount: parseMoneyInput(e.target.value) })}
               inputMode="numeric"
               className="font-mono"
             />
@@ -906,22 +920,22 @@ function WorkflowPanel({
           <div className="grid grid-cols-2 gap-2">
             <Field label="اجرت تعمیرات">
               <Input
-                value={deliverForm.laborCost}
-                onChange={(e) => setDeliverForm({ ...deliverForm, laborCost: toFa(e.target.value) })}
+                value={formatMoneyInput(deliverForm.laborCost)}
+                onChange={(e) => setDeliverForm({ ...deliverForm, laborCost: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
             <Field label="تخفیف">
               <Input
-                value={deliverForm.discount}
-                onChange={(e) => setDeliverForm({ ...deliverForm, discount: toFa(e.target.value) })}
+                value={formatMoneyInput(deliverForm.discount)}
+                onChange={(e) => setDeliverForm({ ...deliverForm, discount: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
             <Field label="بیعانه پرداختی قبلی">
               <Input
-                value={deliverForm.deposit}
-                onChange={(e) => setDeliverForm({ ...deliverForm, deposit: toFa(e.target.value) })}
+                value={formatMoneyInput(deliverForm.deposit)}
+                onChange={(e) => setDeliverForm({ ...deliverForm, deposit: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
@@ -969,45 +983,45 @@ function WorkflowPanel({
           <div className="grid grid-cols-2 gap-2">
             <Field label="مبلغ کل دریافتی">
               <Input
-                value={accForm.receivedAmount}
-                onChange={(e) => setAccForm({ ...accForm, receivedAmount: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.receivedAmount)}
+                onChange={(e) => setAccForm({ ...accForm, receivedAmount: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
                 className="font-mono"
               />
             </Field>
             <Field label="هزینه قطعات">
               <Input
-                value={accForm.partCost}
-                onChange={(e) => setAccForm({ ...accForm, partCost: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.partCost)}
+                onChange={(e) => setAccForm({ ...accForm, partCost: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
                 className="font-mono"
               />
             </Field>
             <Field label="اجرت خدمات">
               <Input
-                value={accForm.laborCost}
-                onChange={(e) => setAccForm({ ...accForm, laborCost: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.laborCost)}
+                onChange={(e) => setAccForm({ ...accForm, laborCost: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
             <Field label="تخفیف">
               <Input
-                value={accForm.discount}
-                onChange={(e) => setAccForm({ ...accForm, discount: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.discount)}
+                onChange={(e) => setAccForm({ ...accForm, discount: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
             <Field label="مالیات VAT">
               <Input
-                value={accForm.tax}
-                onChange={(e) => setAccForm({ ...accForm, tax: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.tax)}
+                onChange={(e) => setAccForm({ ...accForm, tax: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>
             <Field label="بیعانه کسرشده">
               <Input
-                value={accForm.deposit}
-                onChange={(e) => setAccForm({ ...accForm, deposit: toFa(e.target.value) })}
+                value={formatMoneyInput(accForm.deposit)}
+                onChange={(e) => setAccForm({ ...accForm, deposit: parseMoneyInput(e.target.value) })}
                 inputMode="numeric"
               />
             </Field>

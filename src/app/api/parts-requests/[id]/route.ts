@@ -14,6 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const action = body.action as "approve" | "reject";
+  const reason = body.reason ? String(body.reason).trim() : "";
 
   const rows = await db.select().from(partRequests).where(eq(partRequests.id, Number(id))).limit(1);
   const pr = rows[0];
@@ -103,7 +104,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       "رد قطعه",
       "awaiting_parts",
       "assigned",
-      `درخواست قطعه «${pr.partName}» توسط ${approverRole} رد شد.`
+      `درخواست قطعه «${pr.partName}» توسط ${approverRole} رد شد.${reason ? ` دلیل: ${reason}` : ""}`
     );
 
     // Get the device info for notification
@@ -115,7 +116,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       await notify(pr.requestedById, {
         type: "parts_rejected",
         title: "درخواست قطعه رد شد",
-        message: `درخواست خرید قطعه «${pr.partName}» برای ${deviceLabel} توسط ${user.fullName} (${approverRole}) رد شد. لطفاً مجدداً بررسی کنید.`,
+        message: `درخواست خرید قطعه «${pr.partName}» برای ${deviceLabel} توسط ${user.fullName} (${approverRole}) رد شد.${reason ? ` دلیل: ${reason}.` : ""} لطفاً مجدداً بررسی کنید.`,
         deviceId: pr.deviceId,
       });
     }

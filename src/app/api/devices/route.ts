@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices, customers, users, accountingRecords } from "@/db/schema";
+import { devices, customers, users, accountingRecords, deviceNotes } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { listDevices, getTechnicians, logDeviceAction } from "@/lib/queries";
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
       accessories: accessories || null,
       problem,
       estimatedCost: String(estimatedCost || 0),
-      status: "assigned",
+      status: "registered",
       intakeTechnicianId: user.id,
       repairTechnicianId: Number(repairTechnicianId),
       serialNumber: serialNumber || null,
@@ -125,7 +125,13 @@ export async function POST(req: NextRequest) {
   const ticketNumber = makeTicketNumber(device.id);
   await db.update(devices).set({ ticketNumber }).where(eq(devices.id, device.id));
 
-  await logDeviceAction(device.id, user.id, "ثبت پذیرش", null, "assigned", `دستگاه پذیرش شد و به کارشناس تعمیر ارجاع گردید.`);
+  await logDeviceAction(device.id, user.id, "ثبت پذیرش", null, "registered", `دستگاه پذیرش شد و به کارشناس تعمیر ارجاع گردید.`);
+
+  // Extra intake description -> internal note
+  const extraNotes = body.notes ? String(body.notes).trim() : "";
+  if (extraNotes) {
+    await db.insert(deviceNotes).values({ deviceId: device.id, userId: user.id, note: extraNotes });
+  }
 
   if (Number(deposit) > 0) {
     await db.insert(accountingRecords).values({

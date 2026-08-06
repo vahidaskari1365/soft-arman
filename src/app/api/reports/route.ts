@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
 
   const summary = rows.reduce(
     (acc, r) => {
+      if (r.status === "cancelled" || r.accStatus === "cancelled") return acc;
       acc.count += 1;
       acc.partCost += Number(r.partCost || 0);
       acc.received += Number(r.receivedAmount || 0);

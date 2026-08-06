@@ -18,11 +18,11 @@ export function formatNumber(value: string | number | null | undefined): string 
   return toFa(grouped);
 }
 
-/** Format an amount (Rial) with thousands separators, e.g. "۱,۰۰۰,۰۰۰ ریال". */
+/** Format an amount (Toman) with thousands separators, e.g. "۱,۰۰۰,۰۰۰ تومان". */
 export function formatMoney(value: string | number | null | undefined): string {
   const n = Number(toEn(String(value ?? "0")).replace(/[^0-9.-]/g, "")) || 0;
   const grouped = new Intl.NumberFormat("en-US", { useGrouping: true }).format(Math.round(n));
-  return toFa(grouped) + " ریال";
+  return toFa(grouped) + " تومان";
 }
 
 /** Format an amount (Rial) with thousands separators, no currency label. */
@@ -210,10 +210,9 @@ export function parseMoneyInput(formatted: string): string {
   return toEn(formatted).replace(/[^0-9]/g, "");
 }
 
-/** Generates a ticket number like HS-۱۴۰۳-۰۰۰123 */
+/** Generates a globally-unique ticket number like HS-۰۰۰۱۲۳ (id-based, no year). */
 export function makeTicketNumber(seq: number): string {
-  const year = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(new Date());
-  return `HS-${toFa(year)}-${toFa(String(seq).padStart(5, "0"))}`;
+  return `HS-${toFa(String(seq).padStart(6, "0"))}`;
 }
 
 export function statusColor(status: string): string {

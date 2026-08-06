@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardHeader, Button, Input, Field, Badge, Spinner, EmptyState, Modal, StatCard } from "@/components/ui";
-import { formatMoney, toFa, formatNumber } from "@/lib/format";
+import { formatMoney, toFa, toEn, formatNumber, formatMoneyInput, parseMoneyInput } from "@/lib/format";
 import { Boxes, Plus, Search, AlertTriangle, Trash2, Edit3, Truck, Layers, CheckCircle2 } from "lucide-react";
 import { api, useFetch } from "@/lib/client";
 
@@ -133,6 +133,23 @@ export default function InventoryPage() {
     }
   };
 
+  // Buy / stock-in: add quantity to an existing item
+  const stockIn = async (item: any) => {
+    const qty = window.prompt(`افزایش موجودی «${item.name}» — تعداد خرید جدید:`, "1");
+    if (qty === null) return;
+    const n = parseInt(toEn(qty).replace(/[^0-9]/g, ""), 10);
+    if (!n || n <= 0) {
+      setError("تعداد نامعتبر است");
+      return;
+    }
+    try {
+      await api(`/api/inventory/${item.id}`, "PATCH", { currentStock: (Number(item.currentStock) || 0) + n });
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || "خطا در افزایش موجودی");
+    }
+  };
+
   // Supplier Handlers
   const openNewSupModal = () => {
     setEditingSup(null);
@@ -222,7 +239,7 @@ export default function InventoryPage() {
           accent={lowStockCount > 0 ? "rose" : "emerald"}
           icon={<AlertTriangle className="h-5 w-5" />}
         />
-        <StatCard label="ارزش ریالی موجودی خرید" value={formatMoney(totalStockValue)} accent="amber" icon={<Boxes className="h-5 w-5" />} />
+        <StatCard label="ارزش تومانی موجودی خرید" value={formatMoney(totalStockValue)} accent="amber" icon={<Boxes className="h-5 w-5" />} />
       </div>
 
       {/* Tabs & Search */}
@@ -309,6 +326,13 @@ export default function InventoryPage() {
                         <td className="p-3 text-slate-500">{i.location || "—"}</td>
                         <td className="p-3 text-left">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => stockIn(i)}
+                              className="rounded p-1.5 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-slate-800"
+                              title="افزایش موجودی (خرید)"
+                            >
+                              <Truck className="h-4 w-4" />
+                            </button>
                             <button
                               onClick={() => openEditItemModal(i)}
                               className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-sky-600 dark:hover:bg-slate-800"
@@ -409,11 +433,11 @@ export default function InventoryPage() {
                 className="font-mono"
               />
             </Field>
-            <Field label="قیمت خرید (ریال)">
-              <Input value={itemForm.buyPrice} onChange={(e) => setItemForm({ ...itemForm, buyPrice: e.target.value })} className="font-mono" />
+            <Field label="قیمت خرید (تومان)">
+              <Input value={formatMoneyInput(itemForm.buyPrice)} onChange={(e) => setItemForm({ ...itemForm, buyPrice: parseMoneyInput(e.target.value) })} className="font-mono" />
             </Field>
-            <Field label="قیمت فروش (ریال)">
-              <Input value={itemForm.sellPrice} onChange={(e) => setItemForm({ ...itemForm, sellPrice: e.target.value })} className="font-mono" />
+            <Field label="قیمت فروش (تومان)">
+              <Input value={formatMoneyInput(itemForm.sellPrice)} onChange={(e) => setItemForm({ ...itemForm, sellPrice: parseMoneyInput(e.target.value) })} className="font-mono" />
             </Field>
             <div className="sm:col-span-2">
               <Field label="محل نگهداری در انبار">

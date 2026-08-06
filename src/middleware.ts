@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "hamrah_session";
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/track", "/api/auth/login", "/api/health"];
 const PUBLIC_PREFIXES = ["/_next", "/favicon", "/icons", "/images", "/fonts"];
 
 function secret(): Uint8Array {
@@ -16,7 +16,8 @@ export async function middleware(req: NextRequest) {
   const isPublic =
     PUBLIC_PATHS.includes(pathname) ||
     PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
-    pathname.includes(".");
+    pathname.includes(".") ||
+    (pathname.startsWith("/api/devices/") && pathname.endsWith("/status"));
 
   if (isPublic) return NextResponse.next();
 

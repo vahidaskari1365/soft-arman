@@ -49,6 +49,7 @@ export default function NewDevicePage() {
     deadlineDate: "",
     deliveryType: "in_person",
     deposit: "",
+    notes: "",
   });
 
   function set(k: string, v: string) {
@@ -268,7 +269,7 @@ export default function NewDevicePage() {
                 <Textarea value={form.problem} onChange={(e) => set("problem", e.target.value)} placeholder="عیب دستگاه را به نقل از مشتری وارد کنید..." required />
               </Field>
               <Field label="توضیحات">
-                <Textarea placeholder="توضیحات تکمیلی پذیرش..." />
+                <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="توضیحات تکمیلی پذیرش..." />
               </Field>
             </div>
             <Field label="لوازم همراه" hint="شارژر، قاب، گلس، کارتن و...">
@@ -284,9 +285,11 @@ export default function NewDevicePage() {
           <CardHeader title="گارانتی، زمان تحویل (TAT) و امور مالی پذیرش" subtitle="شرایط مالی، بیعانه و تعیین مهلت تحویل" />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="وضعیت گارانتی در زمان پذیرش">
-              <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm text-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
-                {WARRANTY_STATUS_LABELS.out_of_warranty}
-              </div>
+              <Select value={form.warrantyStatus} onChange={(e) => set("warrantyStatus", e.target.value)}>
+                {Object.entries(WARRANTY_STATUS_LABELS).map(([k, label]) => (
+                  <option key={k} value={k}>{label}</option>
+                ))}
+              </Select>
             </Field>
             <Field label="تعیین حدود زمان تعمیر" hint="مدت تقریبی انجام تعمیر را به روز وارد کنید">
               <Input type="number" value={form.warrantyDays} onChange={(e) => set("warrantyDays", e.target.value)} className="font-mono" />
@@ -304,10 +307,10 @@ export default function NewDevicePage() {
                 placeholder="۱۴۰۳/۰۵/۱۵"
               />
             </Field>
-            <Field label="بیعانه / پیش‌پرداخت دریافتی (ریال)" hint="مبلغ پرداختی توسط مشتری هنگام ثبت پذیرش">
+            <Field label="بیعانه / پیش‌پرداخت دریافتی (تومان)" hint="مبلغ پرداختی توسط مشتری هنگام ثبت پذیرش">
               <Input value={formatMoneyInput(form.deposit)} onChange={(e) => set("deposit", parseMoneyInput(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
             </Field>
-            <Field label="هزینه تخمینی تعمیر (ریال)">
+            <Field label="هزینه تخمینی تعمیر (تومان)">
               <Input value={formatMoneyInput(form.estimatedCost)} onChange={(e) => set("estimatedCost", parseMoneyInput(e.target.value))} inputMode="numeric" placeholder="۰" className="font-mono" />
             </Field>
             <Field label="ارجاع به کارشناس تعمیر" required>
