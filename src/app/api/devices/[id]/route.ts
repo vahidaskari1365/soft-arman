@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { devices, deviceLogs, deviceNotes, partRequests, accountingRecords, notifications } from "@/db/schema";
+import { devices, customers, deviceLogs, deviceNotes, partRequests, accountingRecords, notifications } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
-import { getDeviceDetail } from "@/lib/queries";
+import { getDeviceDetail, logDeviceAction } from "@/lib/queries";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireUser();
@@ -19,6 +19,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
   }
   const { id } = await params;
+  const deviceId = Number(id);
+  const device = await getDeviceDetail(deviceId);
+  if (!device) return NextResponse.json({ error: "یافت نشد" }, { status: 404 });
+
   const body = await req.json().catch(() => ({}));
   const allowed = [
     "brand",
@@ -33,6 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     "warrantyDays",
     "deadlineDate",
     "deposit",
+    "deliveryType",
   ];
   const patch: Record<string, unknown> = { updatedAt: new Date() };
   for (const k of allowed) {
@@ -41,12 +46,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         patch[k] = body[k] ? new Date(String(body[k])) : null;
       } else if (k === "warrantyDays") {
         patch[k] = Number(body[k]) || 0;
+      } else if (k === "estimatedCost" || k === "deposit") {
+        patch[k] = String(Number(body[k]) || 0);
       } else {
         patch[k] = body[k];
       }
     }
   }
-  await db.update(devices).set(patch).where(eq(devices.id, Number(id)));
+  await db.update(devices).set(patch).where(eq(devices.id, deviceId));
+
+  // Customer info edits (intake form fix)
+  const cust: Record<string, unknown> = {};
+  if (body.customerName !== undefined) cust.name = body.customerName;
+  if (body.customerPhone !== undefined) cust.phone = body.customerPhone;
+  if (body.customerPhone2 !== undefined) cust.phone2 = body.customerPhone2 || null;
+  if (body.customerAddress !== undefined) cust.address = body.customerAddress || null;
+  if (body.nationalId !== undefined) cust.nationalId = body.nationalId || null;
+  if (Object.keys(cust).length > 0 && device.customerId) {
+    await db.update(customers).set(cust).where(eq(customers.id, device.customerId));
+  }
+
+  await logDeviceAction(deviceId, user.id, "ویرایش اطلاعات", device.status, device.status, "اطلاعات پذیرش توسط کارشناس ویرایش شد.");
   return NextResponse.json({ ok: true });
 }
 

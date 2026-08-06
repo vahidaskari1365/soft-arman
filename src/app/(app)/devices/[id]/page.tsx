@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinner } from "@/components/ui";
-import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/db/schema";
+import { Card, CardHeader, Button, Input, Field, Select, Textarea, Badge, Spinner, Modal } from "@/components/ui";
+import ShamsiDatePicker from "@/components/shamsi-date-picker";
+import { STATUS_LABELS, WARRANTY_STATUS_LABELS, PAYMENT_METHOD_LABELS, DEVICE_TYPES, PHONE_BRANDS } from "@/db/schema";
 import { api, useFetch } from "@/lib/client";
 import { toFa, toEn, formatNumber, formatMoney, formatDate, formatDateTime, statusColor, classNames, formatShortDate } from "@/lib/format";
 import {
@@ -26,6 +27,7 @@ import {
   Key,
   Calendar,
   Trash2,
+  Pencil,
 } from "lucide-react";
 
 type Detail = any;
@@ -42,6 +44,53 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
   // Internal Note form
   const [noteText, setNoteText] = useState("");
   const [postingNote, setPostingNote] = useState(false);
+
+  // Edit form
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  function setEditField(k: string, v: string) {
+    setEditForm((f: any) => ({ ...f, [k]: v }));
+  }
+
+  function openEdit() {
+    setEditForm({
+      customerName: d?.customerName || "",
+      customerPhone: d?.customerPhone || "",
+      customerPhone2: d?.customerPhone2 || "",
+      nationalId: d?.customerNationalId || "",
+      customerAddress: d?.customerAddress || "",
+      deviceType: d?.deviceType || "",
+      brand: d?.brand || "",
+      model: d?.model || "",
+      serialNumber: d?.serialNumber || "",
+      devicePassword: d?.devicePassword || "",
+      accessories: d?.accessories || "",
+      problem: d?.problem || "",
+      estimatedCost: String(d?.estimatedCost || "0"),
+      deposit: String(d?.deposit || "0"),
+      warrantyStatus: d?.warrantyStatus || "out_of_warranty",
+      warrantyDays: String(d?.warrantyDays || "0"),
+      deadlineDate: d?.deadlineDate || "",
+      deliveryType: d?.deliveryType || "in_person",
+    });
+    setEditOpen(true);
+  }
+
+  async function saveEdit() {
+    setSavingEdit(true);
+    setError("");
+    try {
+      await api(`/api/devices/${d.id}`, "PATCH", editForm);
+      setEditOpen(false);
+      await refetch();
+    } catch (err: any) {
+      setError(err.message || "خطا در ویرایش اطلاعات");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -113,6 +162,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
   const canRepair = role === "repair_technician" || role === "super_admin";
   const canDeliver = role === "intake_technician" || role === "service_manager" || role === "super_admin";
   const canAccount = role === "accountant" || role === "super_admin";
+  const canEdit = role === "intake_technician" || role === "service_manager" || role === "super_admin";
 
   const isAwaitingParts = d.status === "awaiting_parts";
   const isAssignedToRepair = d.status === "assigned";
@@ -146,6 +196,11 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
               <Printer className="h-4 w-4" /> چاپ رسید
             </Button>
           </Link>
+          {canEdit && (
+            <Button variant="outline" size="sm" onClick={openEdit}>
+              <Pencil className="h-4 w-4" /> ویرایش اطلاعات
+            </Button>
+          )}
           {role === "super_admin" && (
             <Button
               variant="danger"
@@ -379,6 +434,110 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
           )}
         </div>
       </div>
+
+      {/* Edit intake form modal */}
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="ویرایش اطلاعات پذیرش" size="lg">
+        <div className="grid max-h-[70vh] gap-4 overflow-y-auto p-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-slate-700 dark:text-slate-200">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" /> اطلاعات مشتری
+            </p>
+          </div>
+          <Field label="نام و نام خانوادگی">
+            <Input value={editForm.customerName || ""} onChange={(e) => setEditField("customerName", e.target.value)} />
+          </Field>
+          <Field label="شماره تماس">
+            <Input value={editForm.customerPhone || ""} onChange={(e) => setEditField("customerPhone", e.target.value)} inputMode="tel" className="font-mono" />
+          </Field>
+          <Field label="شماره تماس ثانوی">
+            <Input value={editForm.customerPhone2 || ""} onChange={(e) => setEditField("customerPhone2", e.target.value)} inputMode="tel" className="font-mono" />
+          </Field>
+          <Field label="کد ملی">
+            <Input value={editForm.nationalId || ""} onChange={(e) => setEditField("nationalId", e.target.value)} inputMode="numeric" className="font-mono" />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="آدرس">
+              <Input value={editForm.customerAddress || ""} onChange={(e) => setEditField("customerAddress", e.target.value)} />
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-slate-700 dark:text-slate-200">
+              <Wrench className="h-4 w-4 text-sky-600" /> مشخصات دستگاه و عیب
+            </p>
+          </div>
+          <Field label="نوع دستگاه">
+            <Select value={editForm.deviceType || ""} onChange={(e) => setEditField("deviceType", e.target.value)}>
+              {DEVICE_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="مارک دستگاه">
+            <Select value={editForm.brand || ""} onChange={(e) => setEditField("brand", e.target.value)}>
+              <option value="">انتخاب مارک</option>
+              {Object.keys(PHONE_BRANDS).map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+              <option value="سایر">سایر</option>
+            </Select>
+          </Field>
+          <Field label="مدل دستگاه">
+            <Input value={editForm.model || ""} onChange={(e) => setEditField("model", e.target.value)} />
+          </Field>
+          <Field label="شماره سریال / IMEI">
+            <Input value={editForm.serialNumber || ""} onChange={(e) => setEditField("serialNumber", e.target.value)} className="font-mono" />
+          </Field>
+          <Field label="رمز عبور / PIN">
+            <Input value={editForm.devicePassword || ""} onChange={(e) => setEditField("devicePassword", e.target.value)} />
+          </Field>
+          <Field label="لوازم همراه">
+            <Input value={editForm.accessories || ""} onChange={(e) => setEditField("accessories", e.target.value)} />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="شرح مشکل">
+              <Textarea value={editForm.problem || ""} onChange={(e) => setEditField("problem", e.target.value)} />
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-slate-700 dark:text-slate-200">
+              <Calendar className="h-4 w-4 text-violet-600" /> گارانتی، زمان تحویل و امور مالی
+            </p>
+          </div>
+          <Field label="وضعیت گارانتی">
+            <Select value={editForm.warrantyStatus || "out_of_warranty"} onChange={(e) => setEditField("warrantyStatus", e.target.value)}>
+              {Object.entries(WARRANTY_STATUS_LABELS).map(([k, label]) => (
+                <option key={k} value={k}>{label}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="تعیین حدود زمان تعمیر (روز)">
+            <Input value={editForm.warrantyDays || "0"} onChange={(e) => setEditField("warrantyDays", toEn(e.target.value).replace(/[^0-9]/g, ""))} inputMode="numeric" className="font-mono" />
+          </Field>
+          <Field label="نوع تحویل">
+            <Select value={editForm.deliveryType || "in_person"} onChange={(e) => setEditField("deliveryType", e.target.value)}>
+              <option value="in_person">حضوری</option>
+              <option value="shipping">ارسالی</option>
+            </Select>
+          </Field>
+          <Field label="تاریخ تخمینی تحویل دستگاه">
+            <ShamsiDatePicker value={editForm.deadlineDate || ""} onChange={(v) => setEditField("deadlineDate", v)} placeholder="۱۴۰۳/۰۵/۱۵" />
+          </Field>
+          <Field label="هزینه تخمینی تعمیر (تومان)">
+            <Input value={toFa(editForm.estimatedCost || "0")} onChange={(e) => setEditField("estimatedCost", toEn(e.target.value).replace(/[^0-9]/g, ""))} inputMode="numeric" className="font-mono" />
+          </Field>
+          <Field label="بیعانه / پیش‌پرداخت (تومان)">
+            <Input value={toFa(editForm.deposit || "0")} onChange={(e) => setEditField("deposit", toEn(e.target.value).replace(/[^0-9]/g, ""))} inputMode="numeric" className="font-mono" />
+          </Field>
+        </div>
+        <div className="flex justify-end gap-2 border-t border-[var(--color-border)] p-4">
+          <Button variant="outline" onClick={() => setEditOpen(false)}>انصراف</Button>
+          <Button loading={savingEdit} onClick={saveEdit}>
+            <CheckCircle2 className="h-4 w-4" /> ثبت ویرایش
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -520,6 +679,15 @@ function WorkflowPanel({
   }
 
   // nothing actionable
+  if (d.status === "cancelled")
+    return (
+      <Card className="p-5 text-center">
+        <XCircle className="mx-auto mb-2 h-8 w-8 text-rose-500" />
+        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">این دستگاه لغو شده است (انصراف از تعمیر)</p>
+        <p className="mt-1 text-xs text-slate-400">تاریخچه ثبت‌شده در تایم‌لاین قابل مشاهده است.</p>
+      </Card>
+    );
+
   if (isClosed)
     return (
       <Card className="p-5 text-center">
@@ -534,8 +702,19 @@ function WorkflowPanel({
         <Clock className="mx-auto mb-2 h-8 w-8 text-amber-500 animate-pulse-soft" />
         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">در انتظار تایید خرید قطعه</p>
         <p className="mt-1 text-xs text-slate-400">پس از تایید کارشناس حسابداری، عملیات تعمیر باز می‌شود.</p>
+        {canRepair && (
+          <Button variant="danger" className="mt-4 w-full" loading={busy === "cancel"} onClick={cancelRepair}>
+            <XCircle className="h-4 w-4" /> انصراف از تعمیر
+          </Button>
+        )}
       </Card>
     );
+
+  function cancelRepair() {
+    const reason = window.prompt("در صورت تمایل دلیل انصراف مشتری را وارد کنید (اختیاری):");
+    if (reason === null) return;
+    action("cancel", () => api(`/api/devices/${d.id}/cancel`, "POST", { note: reason?.trim() || undefined }));
+  }
 
   return (
     <Card className="p-5">
@@ -870,6 +1049,17 @@ function WorkflowPanel({
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
           این دستگاه در انتظار تایید قطعه توسط مدیر خدمات است.
         </p>
+      )}
+
+      {(canRepair && (isAssignedToRepair || canDoRepairOps)) && (
+        <div className="mt-4 border-t border-dashed border-[var(--color-border)] pt-3">
+          <Button variant="danger" className="w-full" loading={busy === "cancel"} onClick={cancelRepair}>
+            <XCircle className="h-4 w-4" /> انصراف از تعمیر
+          </Button>
+          <p className="mt-1 text-center text-[11px] text-slate-400">
+            در صورت انصراف مشتری، وضعیت دستگاه «لغو شده» ثبت و در تاریخچه عملیات ذخیره می‌شود.
+          </p>
+        </div>
       )}
     </Card>
   );
