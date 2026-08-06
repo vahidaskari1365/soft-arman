@@ -766,6 +766,18 @@ function WorkflowPanel({
           >
             <Truck className="h-4 w-4" /> تحویل به مشتری
           </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            loading={busy === "return"}
+            onClick={() => {
+              const ok = window.confirm("آیا این دستگاه به کارشناس تعمیرات برگردانده شود؟");
+              if (!ok) return;
+              action("return", () => api(`/api/devices/${d.id}/return-to-repair`, "POST", {}));
+            }}
+          >
+            <Wrench className="h-4 w-4" /> برگشت به کارشناس تعمیرات
+          </Button>
         </div>
       )}
 
